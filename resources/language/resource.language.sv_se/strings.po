@@ -1,0 +1,241 @@
+# XBMC Media Center language file
+# Addon Name: Telia Play
+# Addon id: plugin.video.teliaplay
+# Addon Provider: Telia Play
+msgid ""
+msgstr ""
+"Project-Id-Version: XBMC Addons\n"
+"Report-Msgid-Bugs-To: alanwww1@xbmc.org\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: XBMC Translation Team\n"
+"Language-Team: Swedish (http://www.transifex.com/projects/p/xbmc-addons/language/sv/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: sv\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30000"
+msgid "You can have five devices registered in one and the same Telia Play account. When you log in to Telia Play on a device, it is automatically registered against your account. A digital box does not count as a device but is completely separate.[CR]If you have registered devices in your account, you can not log in to another device until one day after the last login on one of the devices. When a day has passed, you can log in to a new device, and it then replaces the device with the oldest date of use. The change takes place automatically.[CR]If you have already used Telia Play on five devices and are trying to register a new one, you will receive an error message about this."
+msgstr "Du kan ha fem enheter registrerade på ett och samma Telia Play-konto. När du loggar in på Telia Play på en enhet registreras den automatiskt mot ditt konto. En digitalbox räknas inte som en enhet utan ligger helt separat.[CR]Har du fem registrerade enheter på ditt konto kan du inte logga in på någon ny enhet förrän ett dygn efter den senaste inloggningen på en av enheterna. När ett dygn har gått kan du logga in på en ny enhet, och den ersätter då den enheten med äldst användningsdatum. Bytet sker automatiskt.[CR]Om du redan har använt Telia Play på fem enheter och försöker registrera en ny kommer du att få ett felmeddelande om detta."
+
+msgctxt "#30001"
+msgid "Site"
+msgstr "Webbplats"
+
+msgctxt "#30002"
+msgid "Username"
+msgstr "Användarnamn"
+
+msgctxt "#30003"
+msgid "Password"
+msgstr "Lösenord"
+
+msgctxt "#30004"
+msgid "Input username"
+msgstr "Fyll i användarnamn"
+
+msgctxt "#30005"
+msgid "Input password"
+msgstr "Fyll i lösenord"
+
+msgctxt "#30006"
+msgid "Could not connect to site"
+msgstr "Det gick inte att ansluta till webbplatsen"
+
+msgctxt "#30007"
+msgid "Sign in error"
+msgstr "Inloggningsfel"
+
+msgctxt "#30008"
+msgid "Sign in"
+msgstr "Logga in"
+
+msgctxt "#30009"
+msgid "Signed in as {}"
+msgstr "Inloggad som {}"
+
+msgctxt "#30010"
+msgid "TV channels"
+msgstr "TV kanaler"
+
+msgctxt "#30011"
+msgid "VOD"
+msgstr "VOD"
+
+msgctxt "#30012"
+msgid "Telia Play"
+msgstr "Telia Play"
+
+msgctxt "#30013"
+msgid "Maximum number of device units added"
+msgstr "Maximalt antal enheter tillagda"
+
+msgctxt "#30014"
+msgid "Would you like to start program from the beginning?"
+msgstr "Vill du starta programmet från början?"
+
+msgctxt "#30015"
+msgid "Error"
+msgstr "Fel"
+
+msgctxt "#30016"
+msgid "Search could not be found: {}"
+msgstr "Sökning kunde inte hittas: {}"
+
+msgctxt "#30017"
+msgid "No such movie: {}"
+msgstr "Ingen sådan film: {}"
+
+msgctxt "#30018"
+msgid "No such TV program: {}"
+msgstr "Inget sådant TV program: {}"
+
+msgctxt "#30019"
+msgid "Program search"
+msgstr "Programsökning"
+
+msgctxt "#30020"
+msgid "Add-on Install"
+msgstr "Installation av tillägg"
+
+msgctxt "#30021"
+msgid "Telia Play restart required"
+msgstr "Telia Play omstart krävs"
+
+msgctxt "#30022"
+msgid "Add-on error!"
+msgstr "Tilläggsfel!"
+
+msgctxt "#30023"
+msgid "Missing add-on: {}."
+msgstr "Saknar tillägg: {}."
+
+msgctxt "#30024"
+msgid "Search extended information"
+msgstr "Sök utökad information"
+
+msgctxt "#30025"
+msgid "Search as movie"
+msgstr "Sök som film"
+
+msgctxt "#30026"
+msgid "Search as TV show"
+msgstr "Sök som TV-program"
+
+msgctxt "#30027"
+msgid "Extended information"
+msgstr "Utökad information"
+
+msgctxt "#30028"
+msgid "Program has not yet started."
+msgstr "Programmet har ännu inte startat."
+
+msgctxt "#30029"
+msgid "Now playing"
+msgstr "Spelas nu"
+
+msgctxt "#30030"
+msgid "Movies"
+msgstr "Filmer"
+
+msgctxt "#30031"
+msgid "Series"
+msgstr "Serier"
+
+msgctxt "#30032"
+msgid "Search"
+msgstr "Sök"
+
+msgctxt "#30033"
+msgid "Season"
+msgstr "Säsong"
+
+msgctxt "#30034"
+msgid "Episode"
+msgstr "Avsnitt"
+
+msgctxt "#30035"
+msgid "New search"
+msgstr "Ny sökning"
+
+msgctxt "#30036"
+msgid "Remove search"
+msgstr "Ta bort sökning"
+
+msgctxt "#30037"
+msgid "Program search"
+msgstr "Programsökning"
+
+msgctxt "#30038"
+msgid "Favourites"
+msgstr "Favoriter"
+
+msgctxt "#30039"
+msgid "Sport"
+msgstr "Sport"
+
+msgctxt "#30040"
+msgid "Kids"
+msgstr "Barn"
+
+msgctxt "#30041"
+msgid "Select date"
+msgstr "Välj datum"
+
+msgctxt "#30042"
+msgid "Exit childmode"
+msgstr "Avsluta barnläge"
+
+msgctxt "#30043"
+msgid "Would you like to exit child mode?"
+msgstr "Vill du gå ur barnläget?"
+
+msgctxt "#30044"
+msgid "Enter PIN-code"
+msgstr "Ange PIN-kod"
+
+msgctxt "#30045"
+msgid "Wrong PIN-code"
+msgstr "Fel PIN-kod"
+
+msgctxt "#30046"
+msgid "PIN-code"
+msgstr "PIN-kod"
+
+msgctxt "#30047"
+msgid "Disable parental lock"
+msgstr "Avaktivera föräldralås"
+
+msgctxt "#30048"
+msgid "Content not available"
+msgstr "Innehållet är inte tillgängligt"
+
+msgctxt "#30049"
+msgid "Table"
+msgstr "Tablå"
+
+msgctxt "#30050"
+msgid "Upcoming"
+msgstr "Kommande"
+
+msgctxt "#30051"
+msgid "InputStream Adaptive"
+msgstr "InputStream Adaptive"
+
+msgctxt "#30052"
+msgid "InputStream client for adaptive streams."
+msgstr "InputStream klient för adaptiva strömmar."
+
+msgctxt "#30053"
+msgid "InputStream Adaptive settings"
+msgstr "InputStream Adaptive inställningar"
+
+msgctxt "#30054"
+msgid "Settings related to InputStream client."
+msgstr "Inställningar relaterade till InputStream klienten."
+
+msgctxt "#30055"
+msgid "Settings"
+msgstr "Inställningar"

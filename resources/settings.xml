@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<settings version="1">
+	<section id="plugin.video.teliaplay">
+		<category help="" id="teliaplay" label="30012">
+			<group id="1">
+				<setting help="" id="teliaplay_locale" label="30001" type="integer">
+					<level>0</level>
+					<default>0</default>
+					<constraints>
+						<options>
+							<option label="teliaplay.dk">0</option>
+							<option label="teliaplay.se">1</option>
+						</options>
+					</constraints>
+					<control format="string" type="list">
+						<heading>Select</heading>
+					</control>
+				</setting>
+				<setting help="" id="teliaplay_username" label="30002" type="string">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<control format="string" type="edit">
+						<heading>30004</heading>
+					</control>
+				</setting>
+				<setting help="" id="teliaplay_password" label="30003" type="string">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<control format="string" type="edit">
+						<heading>30005</heading>
+						<hidden>true</hidden>
+					</control>
+				</setting>
+				<setting help="" id="teliaplay_adult_enabled" label="30047" type="boolean">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting help="" id="teliaplay_pincode" label="30046" type="string" parent="teliaplay_adult_enabled">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<dependencies>
+						<dependency type="visible">
+							<condition operator="is" setting="teliaplay_adult_enabled">true</condition>
+						</dependency>
+					</dependencies>
+					<control format="string" type="edit">
+						<heading>30044</heading>
+						<hidden>true</hidden>
+					</control>
+				</setting>
+				<setting help="" id="teliaplay_sess_id" type="string">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<visible>false</visible>
+					<control format="string" type="edit">
+						<heading/>
+					</control>
+				</setting>
+				<setting help="" id="teliaplay_devush" type="string">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<visible>false</visible>
+					<control format="string" type="edit">
+						<heading/>
+					</control>
+				</setting>
+				<setting help="" id="teliaplay_beartoken" type="string">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<visible>false</visible>
+					<control format="string" type="edit">
+						<heading/>
+					</control>
+				</setting>
+				<setting help="" id="teliaplay_refrtoken" type="string">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<visible>false</visible>
+					<control format="string" type="edit">
+						<heading/>
+					</control>
+				</setting>
+				<setting help="" id="teliaplay_cookies" type="string">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<visible>false</visible>
+					<control format="string" type="edit">
+						<heading/>
+					</control>
+				</setting>
+				<setting help="" id="teliaplay_usern" type="string">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<visible>false</visible>
+					<control format="string" type="edit">
+						<heading/>
+					</control>
+				</setting>
+			</group>
+		</category>
+		<category help="30054" id="ia" label="30051">
+			<group id="1">
+				<setting help="30052" id="ia_settings" label="30053" type="action">
+					<level>0</level>
+					<data>RunScript(special://home/addons/plugin.video.teliaplay/ia_settings.py,settings)</data>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<control format="action" type="button"/>
+				</setting>
+			</group>
+		</category>
+	</section>
+</settings>

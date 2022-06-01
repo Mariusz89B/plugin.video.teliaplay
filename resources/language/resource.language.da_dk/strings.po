@@ -1,0 +1,241 @@
+# XBMC Media Center language file
+# Addon Name: Telia Play
+# Addon id: plugin.video.teliaplay
+# Addon Provider: Telia Play
+msgid ""
+msgstr ""
+"Project-Id-Version: XBMC Addons\n"
+"Report-Msgid-Bugs-To: alanwww1@xbmc.org\n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: XBMC Translation Team\n"
+"Language-Team: Danish (http://www.transifex.com/projects/p/xbmc-addons/language/da/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: da\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30000"
+msgid "You can have five devices registered in one and the same Telia Play account. When you log in to Telia Play on a device, it is automatically registered against your account. A digital box does not count as a device but is completely separate.[CR]If you have registered devices in your account, you can not log in to another device until one day after the last login on one of the devices. When a day has passed, you can log in to a new device, and it then replaces the device with the oldest date of use. The change takes place automatically.[CR]If you have already used Telia Play on five devices and are trying to register a new one, you will receive an error message about this."
+msgstr ""
+
+msgctxt "#30001"
+msgid "Site"
+msgstr "Websted"
+
+msgctxt "#30002"
+msgid "Username"
+msgstr "Brugernavn"
+
+msgctxt "#30003"
+msgid "Password"
+msgstr "Adgangskode"
+
+msgctxt "#30004"
+msgid "Input username"
+msgstr "Indtast brugernavn"
+
+msgctxt "#30005"
+msgid "Input password"
+msgstr "Indtast adgangskode"
+
+msgctxt "#30006"
+msgid "Could not connect to site"
+msgstr "Kunne ikke oprette forbindelse til webstedet"
+
+msgctxt "#30007"
+msgid "Sign in error"
+msgstr "Fejl ved login"
+
+msgctxt "#30008"
+msgid "Sign in"
+msgstr "Log ind"
+
+msgctxt "#30009"
+msgid "Signed in as {}"
+msgstr "Logget ind som {}"
+
+msgctxt "#30010"
+msgid "TV channels"
+msgstr "TV kanaler"
+
+msgctxt "#30011"
+msgid "VOD"
+msgstr "VOD"
+
+msgctxt "#30012"
+msgid "Telia Play"
+msgstr "Telia Play"
+
+msgctxt "#30013"
+msgid "Maximum number of device units added"
+msgstr "Maksimalt antal enheder tilføjet"
+
+msgctxt "#30014"
+msgid "Would you like to start program from the beginning?"
+msgstr "Vil du starte programmet fra begyndelsen?"
+
+msgctxt "#30015"
+msgid "Error"
+msgstr "Fejl"
+
+msgctxt "#30016"
+msgid "Search could not be found: {}"
+msgstr "Søgningen kunne ikke findes: {}"
+
+msgctxt "#30017"
+msgid "No such movie: {}"
+msgstr "Ingen sådan film: {}"
+
+msgctxt "#30018"
+msgid "No such TV program: {}"
+msgstr "Intet sådant TV program: {}"
+
+msgctxt "#30019"
+msgid "Program search"
+msgstr "Programsøgning"
+
+msgctxt "#30020"
+msgid "Add-on Install"
+msgstr "Installation af tilføjelse"
+
+msgctxt "#30021"
+msgid "Telia Play restart required"
+msgstr "Telia Play genstart påkrævet"
+
+msgctxt "#30022"
+msgid "Add-on error!"
+msgstr "Fejl til tilføjelse!"
+
+msgctxt "#30023"
+msgid "Missing add-on: {}."
+msgstr "Manglende tilføjelse: {}."
+
+msgctxt "#30024"
+msgid "Search extended information"
+msgstr "Søg i udvidet information"
+
+msgctxt "#30025"
+msgid "Search as movie"
+msgstr "Søg som film"
+
+msgctxt "#30026"
+msgid "Search as TV show"
+msgstr "Søg som TV program"
+
+msgctxt "#30027"
+msgid "Extended information"
+msgstr "Udvidet information"
+
+msgctxt "#30028"
+msgid "Program has not yet started."
+msgstr "Programmet er endnu ikke startet."
+
+msgctxt "#30029"
+msgid "Now playing"
+msgstr "Afspiller nu"
+
+msgctxt "#30030"
+msgid "Movies"
+msgstr "Film"
+
+msgctxt "#30031"
+msgid "Series"
+msgstr "Serie"
+
+msgctxt "#30032"
+msgid "Search"
+msgstr "Søg"
+
+msgctxt "#30033"
+msgid "Season"
+msgstr "Sæson"
+
+msgctxt "#30034"
+msgid "Episode"
+msgstr "Episode"
+
+msgctxt "#30035"
+msgid "New search"
+msgstr "Ny søgning"
+
+msgctxt "#30036"
+msgid "Remove search"
+msgstr "Fjern søgning"
+
+msgctxt "#30037"
+msgid "Program search"
+msgstr "Programsøgning"
+
+msgctxt "#30038"
+msgid "Favourites"
+msgstr "Favoritter"
+
+msgctxt "#30039"
+msgid "Sport"
+msgstr "Sport"
+
+msgctxt "#30040"
+msgid "Kids"
+msgstr "Børn"
+
+msgctxt "#30041"
+msgid "Select date"
+msgstr "Vælg dato"
+
+msgctxt "#30042"
+msgid "Exit childmode"
+msgstr "Afslut børnetilstand"
+
+msgctxt "#30043"
+msgid "Would you like to exit child mode?"
+msgstr "Vil du afslutte børnetilstand?"
+
+msgctxt "#30044"
+msgid "Enter PIN-code"
+msgstr "Indtast PIN-kode"
+
+msgctxt "#30045"
+msgid "Wrong PIN-code"
+msgstr "Forkert PIN-kode"
+
+msgctxt "#30046"
+msgid "PIN-code"
+msgstr "PIN-kode"
+
+msgctxt "#30047"
+msgid "Disable parental lock"
+msgstr "Deaktiver forældrelås"
+
+msgctxt "#30048"
+msgid "Content not available"
+msgstr "Indhold ikke tilgængeligt"
+
+msgctxt "#30049"
+msgid "Table"
+msgstr "Program"
+
+msgctxt "#30050"
+msgid "Upcoming"
+msgstr "Kommende"
+
+msgctxt "#30051"
+msgid "InputStream Adaptive"
+msgstr "InputStream Adaptive"
+
+msgctxt "#30052"
+msgid "InputStream client for adaptive streams."
+msgstr "InputStream klient til adaptive streams."
+
+msgctxt "#30053"
+msgid "InputStream Adaptive settings"
+msgstr "InputStream Adaptive indstillinger"
+
+msgctxt "#30054"
+msgid "Settings related to InputStream client."
+msgstr "Indstillinger relateret til InputStream klient."
+
+msgctxt "#30055"
+msgid "Settings"
+msgstr "Indstillinger"

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.teliaplay" name="Telia Play" version="0.0.1" provider-name="mariusz89b">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+    <import addon="script.module.inputstreamhelper" version="0.2.4"/>
+    <import addon="script.module.requests" version="2.9.1"/>
+	<import addon="script.module.six" />
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="addon.py">
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.service" library="player.py"/>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="en_GB">Telia Play</summary>
+	<description lang="da_DK">Se indhold fra Telia Play.</description>
+    <description lang="en_GB">Watch content from Telia Play.</description>
+	<description lang="nb_NO">Se innhold fra Telia Play.</description>
+	<description lang="sv_SE">Se innehåll från Telia Play.</description>
+    <disclaimer lang="en_GB">This add-on is unoffical and is not endorsed or supported by any of the services provided in any way. Any trademarks used belong to their owning companies and organisations.</disclaimer>
+    <language>en sv</language>
+    <platform>all</platform>
+    <license>GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 and MIT LICENSE.</license>
+    <source>https://github.com/Mariusz89B/plugin.video.teliaplay</source>
+    <news>v0.0.1 (2022-06-01)
+- Initial version.
+    </news>
+    <assets>
+        <icon>icon.png</icon>
+        <fanart>resources/fanart.jpg</fanart>
+        <banner>resources/banner.jpg</banner>
+        <clearlogo>resources/clearlogo.png</clearlogo>
+        <screenshot>resources/screenshots/screenshot-01.jpg</screenshot>
+		<screenshot>resources/screenshots/screenshot-02.jpg</screenshot>
+		<screenshot>resources/screenshots/screenshot-03.jpg</screenshot>
+    </assets>
+  </extension>
+</addon>
