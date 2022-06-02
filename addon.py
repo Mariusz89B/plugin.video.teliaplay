@@ -222,7 +222,7 @@ def send_req(url, post=False, json=None, headers=None, data=None, params=None, c
 
 def create_data():
     dashjs = str(uuid.uuid4())
-    addon.setSetting('teliaplay_devush', str(dashjs))
+    addon.setSetting('teliaplay_devush', 'WEB-' + str(dashjs))
 
     tv_client_boot_id = str(uuid.uuid4())
     addon.setSetting('teliaplay_tv_client_boot_id', str(tv_client_boot_id))
@@ -306,9 +306,10 @@ def login_service():
                 pass
 
             create_data()
-            profile = profiles()
 
-        login = login_data(reconnect=False)
+            login = login_data(reconnect=False)
+        else:
+            login = True
 
         if login:
             run = Threading()
@@ -317,6 +318,7 @@ def login_service():
 
     except Exception as ex:
         print('login_service exception: {}'.format(ex))
+        addon.setSetting('teliaplay_devush', '')
         xbmcgui.Dialog().notification(localized(30012), localized(30006))
     return False
 
@@ -647,12 +649,16 @@ def vod(genre_id):
             selection = data.get('selectionMediaContent')
             media = data.get('mediaContent')
             stores = data.get('storesContent')
+            showcase = data.get('showcaseContent')
 
             if selection:
                 items = selection.get('items')
 
             elif media:
                 items = media.get('items')
+
+            elif showcase:
+                items = showcase.get('items')
 
             else:
                 items = stores.get('items')
@@ -1055,7 +1061,7 @@ def live_channels():
 
         engagementjson = send_req(url, headers=headers, verify=True)
         if not engagementjson:
-            return result
+            return
 
         engagementjson = engagementjson.json()
 
@@ -1558,8 +1564,14 @@ def sports_corner():
         j_response = response.json()
 
     try:
-        data = j_response['data']['page']['pagePanels']['items'][1]['timelineContent']['items']
-        get_items(data)
+        data = j_response['data']['page']['pagePanels']['items']
+
+        for item in data:
+            timeline = item.get('timelineContent')
+            if timeline:
+                items = timeline.get('items')
+
+        get_items(items)
     except:
         xbmcgui.Dialog().notification(localized(30012), localized(30048))
         return
@@ -1595,9 +1607,30 @@ def kids():
     if response:
         j_response = response.json()
         try:
-            data = j_response['data']['page']['pagePanels']['items'][1]['mediaContent']['items']
-            get_items(data)
-        except:
+            data = j_response['data']['page']['pagePanels']['items']#[2]
+
+            for item in data:
+                selection = item.get('selectionMediaContent')
+                media = item.get('mediaContent')
+                stores = item.get('storesContent')
+                showcase = item.get('showcaseContent')
+
+                if selection:
+                    items = selection.get('items')
+
+                elif media:
+                    items = media.get('items')
+
+                elif showcase:
+                    items = showcase.get('items')
+
+                else:
+                    items = stores.get('items')
+
+            get_items(items)
+
+        except Exception as ex:
+            print('kids Exception: {}'.format(ex))
             xbmcgui.Dialog().notification(localized(30012), localized(30048))
             return
 
