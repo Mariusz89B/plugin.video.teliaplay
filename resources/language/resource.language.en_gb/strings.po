@@ -239,3 +239,11 @@ msgstr ""
 msgctxt "#30055"
 msgid "Settings"
 msgstr ""
+
+msgctxt "#30056"
+msgid "Clear login data credentials"
+msgstr ""
+
+msgctxt "#30057"
+msgid "Login credentials cleared."
+msgstr ""

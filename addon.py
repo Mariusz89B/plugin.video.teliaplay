@@ -59,6 +59,7 @@ from datetime import *
 import requests
 from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
 
+import json
 import re
 import time
 import threading
@@ -370,18 +371,20 @@ def login_data(reconnect, retry=0):
 
         response = send_req(url, post=True, headers=headers, json=data, verify=True, timeout=timeouts)
 
-        url = 'https://ottapi.prod.telia.net/web/{cc}/logingateway/rest/v1/login'.format(cc=cc[country])
+        url = 'https://logingateway-telia.clientapi-prod.live.tv.telia.net/logingateway/rest/v1/authenticate'
 
         headers = {
-            'host': 'ottapi.prod.telia.net',
-            'tv-client-boot-id': tv_client_boot_id,
-            'user-agent': UA,
-            'content-type': 'application/json',
             'accept': '*/*',
-            'sec-GPC': '1',
-            'origin':  base[country],
-            'referer': referer[country],
-            'accept-language': 'en-US,en;q=0.9',
+            'accept-language': 'sv,en;q=0.9,en-GB;q=0.8,en-US;q=0.7,pl;q=0.6,fr;q=0.5',
+            'DNT': '1',
+            'origin': 'https://login.teliaplay.{cc}'.format(cc=cc[country]),
+            'referer': 'https://login.teliaplay.{cc}/'.format(cc=cc[country]),
+            'user-agent': UA,
+            'x-country': ca[country],
+        }
+
+        params = {
+            'redirectUri': 'https://www.teliaplay.{cc}/'.format(cc=cc[country]),
         }
 
         data = {
@@ -389,9 +392,39 @@ def login_data(reconnect, retry=0):
             'deviceType': 'WEB',
             'password': password,
             'username': login,
+            'whiteLabelBrand': 'TELIA',
         }
 
-        response = send_req(url, post=True, headers=headers, json=data, verify=True, timeout=timeouts)
+        response = send_req(url, post=True, headers=headers, json=data, params=params, verify=True, timeout=timeouts)
+
+        code = ''
+
+        if not response:
+            xbmcgui.Dialog().notification(localized(30012), localized(30006))
+            return
+
+        j_response = response.json()
+        code = j_response['redirectUri'].replace('https://www.teliaplay.{cc}/?code='.format(cc=cc[country]), '')
+
+        url = 'https://logingateway-telia.clientapi-prod.live.tv.telia.net/logingateway/rest/v1/oauth/token'
+
+        headers = {
+            'accept-language': 'sv,en;q=0.9,en-GB;q=0.8,en-US;q=0.7,pl;q=0.6,fr;q=0.5',
+            'DNT': '1',
+            'origin': 'https://www.teliaplay.{cc}'.format(cc=cc[country]),
+            'referer': 'https://www.teliaplay.{cc}/'.format(cc=cc[country]),
+            'user-agent': UA,
+            'x-country': ca[country],
+            'accept': 'application/json',
+            'tv-client-boot-id': tv_client_boot_id,
+            'tv-client-name': 'web',
+        }
+
+        params = {
+            'code': code,
+        }
+
+        response = send_req(url, post=True, params=params, headers=headers, timeout=timeouts)
 
         if not response:
             if reconnect and retry < 3:
@@ -449,6 +482,8 @@ def login_data(reconnect, retry=0):
         }
 
         response = send_req(url, post=True, headers=headers, json=data, verify=True, timeout=timeouts)
+        print('TEST1')
+        print(response.text)
 
         try:
             response = response.json()
@@ -503,6 +538,8 @@ def login_data(reconnect, retry=0):
         }
 
         response = send_req(url, headers=headers, cookies=sess.cookies, allow_redirects=False, timeout=timeouts)
+        print('TEST2')
+        print(response.text)
 
         if not response:
             if reconnect:
@@ -1044,7 +1081,7 @@ def live_channels():
     login = login_service()
     if not login:
         xbmcgui.Dialog().notification(localized(30012), localized(30006))
-        return
+        raise Exception
 
     beartoken = addon.getSetting('teliaplay_beartoken')
     tv_client_boot_id = addon.getSetting('teliaplay_tv_client_boot_id')
@@ -1061,7 +1098,7 @@ def live_channels():
 
         engagementjson = send_req(url, headers=headers, verify=True)
         if not engagementjson:
-            return
+            raise Exception
 
         engagementjson = engagementjson.json()
 
@@ -1118,7 +1155,7 @@ def live_channels():
         response = send_req(url, post=True, json=json, headers=headers)
         if not response:
             xbmcgui.Dialog().notification(localized(30012), localized(30006))
-            return
+            raise Exception
 
         j_response = response.json()
         channels = j_response['data']['channels']['channelItems']
@@ -1593,7 +1630,7 @@ def kids():
         'user-agent': 'okhttp/4.9.3',
     }
 
-    json = {
+    jsonx = {
         'operationName': 'getCommonBrowsePage',
         'variables': {
             'mediaContentLimit': 50,
@@ -1603,31 +1640,12 @@ def kids():
         'query': 'query getCommonBrowsePage($pageId: String!, $mediaContentLimit: Int!) { page(id: $pageId) { id pagePanels { items { __typename title id ...MobileShowcasePanel ...MobileMediaPanel ...MobileSelectionMediaPanel ...MobileSingleFeaturePanel ...MobileStoresPanel } } } }  fragment PlaybackSpec on PlaybackSpec { accessControl videoId videoIdType watchMode }  fragment Vod on Vod { audioLang { name code } playbackSpec { __typename ...PlaybackSpec } price { readable } validFrom { timestamp readableDistance(type: FUZZY) } validTo { timestamp } }  fragment Linear on PlaybackPlayLinear { item { startover { playbackSpec { __typename ...PlaybackSpec } } playbackSpec { __typename ...PlaybackSpec } startTime { timestamp readableDistance(type: FUZZY) } endTime { timestamp } } }  fragment Rental on PlaybackPlayVodRental { item { __typename ...Vod } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) msTo } } }  fragment Recording on PlaybackPlayRecording { item { playbackSpec { __typename ...PlaybackSpec } audioLang { name code } validFrom { timestamp } validTo { timestamp } } startover { playbackSpec { __typename ...PlaybackSpec } } }  fragment SubscriptionProductStandard on SubscriptionProductStandard { id price { readable } }  fragment SubscriptionProductDualEntry on SubscriptionProductDualEntry { id }  fragment SubscriptionProductTVE on SubscriptionProductTVE { id }  fragment SubscriptionProductFallback on SubscriptionProductFallback { id }  fragment Playback on Playback { play { subscription { item { __typename ...Vod } } linear { __typename ...Linear } rental { __typename ...Rental } npvr { __typename ...Recording } } buy { subscriptions { item { __typename id name ...SubscriptionProductStandard ...SubscriptionProductDualEntry ...SubscriptionProductTVE ...SubscriptionProductFallback } } rental { item { price { readable } validFrom { timestamp } validTo { timestamp } } } npvr { __typename } } }  fragment Store on Store { name icons { dark { sourceNonEncoded } } }  fragment MobileShowcaseMovie on Movie { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } store { __typename ...Store } }  fragment MobileShowcaseEpisode on Episode { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } series { id } store { __typename ...Store } }  fragment MobileShowcaseSeries on Series { id title userData { favorite } images { backdrop16x9 { sourceNonEncoded } } webview { url } suggestedEpisode { id playback { __typename ...Playback } } store { __typename ...Store } }  fragment MobileShowcaseSportEvent on SportEvent { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } store { __typename ...Store } }  fragment ChannelPlayback on ChannelPlayback { play { playbackSpec { __typename ...PlaybackSpec } } buy { subscriptions { item { id } } } }  fragment MobileShowcaseChannel on Channel { channelPlayback: playback { __typename ...ChannelPlayback } }  fragment MobileShowcasePanel on ShowcasePanel { id title showcaseContent { items { id showcaseTitle { text } kicker images { showcase16x9 { sourceNonEncoded } showcase16x7 { sourceNonEncoded } showcase7x10 { sourceNonEncoded } showcase2x3 { sourceNonEncoded } } promotion { link { id type } content { __typename ...MobileShowcaseMovie ...MobileShowcaseEpisode ...MobileShowcaseSeries ...MobileShowcaseSportEvent ...MobileShowcaseChannel } } } } }  fragment MobilePageMovie on Movie { id title playback { __typename ...Playback } images { backdrop16x9 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } } descriptionLong price { readable } genre yearProduction { number } ageRating { number } duration { readableShort } ratings { imdb { readableScore } } productionCountries userData { progress { percent position } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) } } } store { name } availability { from { text } } availableNow labels { premiereAnnouncement { text } } }  fragment MobilePageSeries on Series { id title images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } } description genre ageRating { number } ratings { imdb { readableScore } } label webview { url } isRentalSeries }  fragment MobilePageEpisode on Episode { id title images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } screenshot16x9 { sourceNonEncoded } } descriptionLong price { readable } genre yearProduction { number } episodeNumber { number readable } seasonNumber { number readable } playback { __typename ...Playback } series { id title } ageRating { number } duration { readableShort } userData { progress { percent position } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) } } } store { name } }  fragment MobilePageSportEvent on SportEvent { id title playback { __typename ...Playback } images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } } availability { from { text timestamp } } descriptionLong genre badges { uhd { text } } productionCountries ageRating { number } duration { readableShort } store { name } league labels { airtime { text } } yearProduction { number } userData { progress { percent position } } venue }  fragment MobilePageMediaPanelContent on MediaPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileMediaPanel on MediaPanel { id title kicker displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } mediaContent(limit: $mediaContentLimit) { pageInfo { hasNextPage } items { media { __typename ...MobilePageMediaPanelContent } } } }  fragment MobileSelectionMediaPanel on SelectionMediaPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } selectionMediaContent(config: { limit: $mediaContentLimit } ) { pageInfo { hasNextPage } items { media { __typename ...MobilePageMediaPanelContent } } } link { id type } }  fragment MobileSingleFeaturePanelMedia on SingleFeaturePanelMedia { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileSingleFeaturePanel on SingleFeaturePanel { id title subtitle images { __typename ... on SingleFeaturePanelImages { promo16x9 { sourceNonEncoded } } } media { __typename ...MobileSingleFeaturePanelMedia } }  fragment MobilePageStore on Store { id __typename name icons { light { sourceNonEncoded } dark { sourceNonEncoded } } }  fragment MobileStoresPanel on StoresPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } storesContent(limit: $mediaContentLimit) { pageInfo { hasNextPage } items { __typename ...MobilePageStore } } }'
     }
 
-    response = send_req(url, post=True, json=json, headers=headers)
+    response = send_req(url, post=True, json=jsonx, headers=headers)
     if response:
         j_response = response.json()
         try:
-            data = j_response['data']['page']['pagePanels']['items']#[2]
-
-            for item in data:
-                selection = item.get('selectionMediaContent')
-                media = item.get('mediaContent')
-                stores = item.get('storesContent')
-                showcase = item.get('showcaseContent')
-
-                if selection:
-                    items = selection.get('items')
-
-                elif media:
-                    items = media.get('items')
-
-                elif showcase:
-                    items = showcase.get('items')
-
-                else:
-                    items = stores.get('items')
-
-            get_items(items)
+            data = j_response['data']['page']['pagePanels']['items'][2]['mediaContent']['items']
+            get_items(data)
 
         except Exception as ex:
             print('kids Exception: {}'.format(ex))

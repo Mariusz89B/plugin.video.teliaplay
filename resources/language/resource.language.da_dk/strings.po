@@ -239,3 +239,11 @@ msgstr "Indstillinger relateret til InputStream klient."
 msgctxt "#30055"
 msgid "Settings"
 msgstr "Indstillinger"
+
+msgctxt "#30056"
+msgid "Clear login data credentials"
+msgstr "Ryd login oplysninger"
+
+msgctxt "#30057"
+msgid "Login credentials cleared."
+msgstr "Loginoplysninger ryddet."

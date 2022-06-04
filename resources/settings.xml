@@ -58,6 +58,14 @@
 						<hidden>true</hidden>
 					</control>
 				</setting>
+				<setting help="" id="teliaplay_cleardata" label="30056" type="action" parent="cmore_enabled">
+					<level>0</level>
+					<data>RunScript(special://home/addons/plugin.video.teliaplay/cleardata.py,cleardata)</data>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<control format="action" type="button"/>
+				</setting>
 				<setting help="" id="teliaplay_sess_id" type="string">
 					<level>0</level>
 					<default/>
