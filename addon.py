@@ -237,64 +237,63 @@ def create_data():
     return dashjs, tv_client_boot_id, timestamp, sessionid
 
 def check_login():
-        result = None
+    result = None
 
-        valid_to = addon.getSetting('teliaplay_validto')
-        beartoken = addon.getSetting('teliaplay_beartoken')
-        refrtoken = addon.getSetting('teliaplay_refrtoken')
-        cookies = addon.getSetting('teliaplay_cookies')
+    valid_to = addon.getSetting('teliaplay_validto')
+    beartoken = addon.getSetting('teliaplay_beartoken')
+    refrtoken = addon.getSetting('teliaplay_refrtoken')
+    cookies = addon.getSetting('teliaplay_cookies')
 
-        refresh = refresh_timedelta(valid_to)
+    refresh = refresh_timedelta(valid_to)
 
-        if not valid_to:
-            valid_to = datetime.now() - timedelta(days=1)
+    if not valid_to:
+        valid_to = datetime.now() + timedelta(days=1)
 
-        if not beartoken and refresh < timedelta(minutes=1):
-            login, profile = login_data(reconnect=True)
+    if (not beartoken or refresh < timedelta(minutes=1)):
+        login = login_data(reconnect=True)
+        result = valid_to, beartoken, refrtoken, cookies
 
-            result = valid_to, beartoken, refrtoken, cookies
-
-        return result
+    return result
 
 def check_refresh():
-        valid_to = addon.getSetting('teliaplay_validto')
-        beartoken = addon.getSetting('teliaplay_beartoken')
+    valid_to = addon.getSetting('teliaplay_validto')
+    beartoken = addon.getSetting('teliaplay_beartoken')
 
-        refresh = refresh_timedelta(valid_to)
+    refresh = refresh_timedelta(valid_to)
 
-        if not valid_to:
-            valid_to = datetime.now() - timedelta(days=1)
+    if not valid_to:
+        valid_to = datetime.now() + timedelta(days=1)
 
-        if refresh is not None:
-            refr = True if not beartoken or refresh < timedelta(minutes=1) else False
-        else:
-            refr = False
+    if refresh:
+        refr = True if (not beartoken or refresh < timedelta(minutes=1)) else False
+    else:
+        refr = False
 
-        return refr
+    return refr
 
 def refresh_timedelta(valid_to):
-        result = None
+    result = None
 
-        if 'Z' in valid_to:
-            valid_to = iso8601.parse_date(valid_to)
-        elif valid_to != '':
-            if not valid_to:
-                try:
-                    date_time_format = '%Y-%m-%dT%H:%M:%S.%f+' + valid_to.split('+')[1]
-                except:
-                    date_time_format = '%Y-%m-%dT%H:%M:%S.%f+' + valid_to.split('+')[0]
+    if 'Z' in str(valid_to):
+        valid_to = iso8601.parse_date(valid_to)
+    elif valid_to:
+        if 'T' in str(valid_to):
+            try:
+                date_time_format = '%Y-%m-%dT%H:%M:%S.%f+' + valid_to.split('+')[1]
+            except:
+                date_time_format = '%Y-%m-%dT%H:%M:%S.%f+' + valid_to.split('+')[0]
 
-                valid_to = datetime(*(time.strptime(valid_to, date_time_format)[0:6]))
-                timestamp = int(time.mktime(valid_to.timetuple()))
-                token_valid_to = datetime.fromtimestamp(int(timestamp))
-            else:
-                token_valid_to = datetime.now()
+            valid_to = datetime(*(time.strptime(valid_to, date_time_format)[0:6]))
+            timestamp = int(time.mktime(valid_to.timetuple()))
+            token_valid_to = datetime.fromtimestamp(int(timestamp))
         else:
-            token_valid_to = datetime.now()
+            token_valid_to = valid_to
+    else:
+        token_valid_to = datetime.now()
 
-        result = token_valid_to - datetime.now()
+    result = token_valid_to - datetime.now()
 
-        return result
+    return result
 
 def login_service():
     try:
@@ -443,7 +442,7 @@ def login_data(reconnect, retry=0):
         except:
             pass
 
-        validTo = j_response.get('teliaplay_validTo', '')
+        validTo = j_response.get('validTo', '')
         addon.setSetting('teliaplay_validto', str(validTo))
 
         beartoken = j_response.get('accessToken', '')

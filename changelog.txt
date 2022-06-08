@@ -1,3 +1,6 @@
+v0.3 (2022-06-08)
+- Hotfix.
+
 v0.2 (2022-06-06)
 - Fixed missing programs.
 
