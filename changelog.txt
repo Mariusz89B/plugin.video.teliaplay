@@ -1,3 +1,6 @@
+v0.4 (2022-06-09)
+- Code refactoring.
+
 v0.3 (2022-06-08)
 - Hotfix.
 

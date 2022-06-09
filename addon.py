@@ -1623,11 +1623,13 @@ def sports(genre_id):
             for i in data:
                 for item in i['items']:
                     genre = item['media']['genre']
-
                     if genre == idx:
                         items = i['items']
 
-                        get_items(items)
+            if items:
+                get_items(items)
+            else:
+                raise Exception
 
         except Exception as ex:
             print('sports table Exception: {}'.format(ex))
