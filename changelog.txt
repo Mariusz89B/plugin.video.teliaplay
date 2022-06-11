@@ -1,3 +1,6 @@
+v1.0.1 (2022-06-11)
+- Fixed encoding for playlist generator.
+
 v1.0 (2022-06-11)
 - Added M3U playlist generator.
 - Code refactoring.

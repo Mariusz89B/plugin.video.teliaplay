@@ -2121,7 +2121,7 @@ def build_m3u():
 
         data += '\n#EXTINF:-1 tvg-id="{id}" tvg-name="{title}" tvg-logo="{icon}" group-title="Telia", {title}\n{url}'.format(id=tvg_id, title=title, url=url, icon=icon)
 
-    with open(path + 'teliaplay_iptv.m3u', 'w+') as f:
+    with open(path + 'teliaplay_iptv.m3u', 'w+', encoding='utf-8') as f:
         f.write(data)
 
     xbmcgui.Dialog().notification(localized(30012), localized(30064), xbmcgui.NOTIFICATION_INFO)
