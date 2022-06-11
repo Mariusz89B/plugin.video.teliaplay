@@ -105,6 +105,12 @@ search_icon = os.path.join(icons, 'search.png')
 lock_icon = os.path.join(icons, 'lock.png')
 settings_icon = os.path.join(icons, 'settings.png')
 
+catchup_msg = addon.getSetting('teliaplay_play_beginning')
+if catchup_msg == 'true':
+    play_beginning = True
+else:
+    play_beginning = False
+
 login = addon.getSetting('teliaplay_username').strip()
 password = addon.getSetting('teliaplay_password').strip()
 
@@ -1181,6 +1187,8 @@ def live_channels():
 
         count = 0
 
+        channel_lst = []
+
         for channel in channels:
             if channel['id'] in engagementLiveChannels:
                 count += 1
@@ -1219,12 +1227,15 @@ def live_channels():
                     img = icons.get('dark').get('source')
                     icon = unquote(img)
 
+                channel_lst.append((exlink, name, icon))
                 add_item(label=name, url=exlink, mode='programs', icon=icon, folder=True, playable=False, info_labels={'title':name, 'plot':name}, fanart=fanart, item_count=count)
 
         xbmcplugin.endOfDirectory(addon_handle)
 
     except Exception as ex:
         print('live_channels exception: {}'.format(ex))
+
+    return channel_lst
 
 def live_channel(exlink, extitle):
     country            = int(addon.getSetting('teliaplay_locale'))
@@ -1911,12 +1922,13 @@ def play(exlink, title, media_id, catchup_type, start, end):
         now = int(time.time())
 
         if int(now) >= int(start) and int(now) <= int(end):
-            response = xbmcgui.Dialog().yesno(localized(30012), localized(30014))
-            if response:
-                exlink = media_id
-                catchup_type = 'STARTOVER'
-            else:
-                catchup_type = 'LIVE'
+            catchup_type = 'LIVE'
+            if play_beginning:
+                response = xbmcgui.Dialog().yesno(localized(30012), localized(30014))
+                if response:
+                    exlink = media_id
+                    catchup_type = 'STARTOVER'
+
         elif int(end) >= int(now):
             xbmcgui.Dialog().ok(localized(30012), localized(30028))
             return
@@ -2088,7 +2100,32 @@ def profiles(j_response):
     profile = profiles[ret]
 
     addon.setSetting('teliaplay_profile_name', profile[0])
-    addon.setSetting('teliaplay_profile_avatar', profile[-1]) 
+    addon.setSetting('teliaplay_profile_avatar', profile[-1])
+
+def build_m3u():
+    path = xbmcgui.Dialog().browse(0, localized(30062), 'files')
+    if path == '':
+        return
+
+    xbmcgui.Dialog().notification(localized(30012), localized(30063), xbmcgui.NOTIFICATION_INFO)
+    data = '#EXTM3U'
+
+    items = live_channels()
+    for item in items:
+        cid = item[0]
+        url = 'plugin://plugin.video.teliaplay/?title=&mode=play&url={cid}&catchup=LIVE&start=0&end=0'.format(cid=cid)
+
+        tvg_id = item[1].lower().replace(' ', '_') + '.' + cc[country]
+        title = item[1] + ' ' + ca[country]
+        icon = item[2]
+
+        data += '\n#EXTINF:-1 tvg-id="{id}" tvg-name="{title}" tvg-logo="{icon}" group-title="Telia", {title}\n{url}'.format(id=tvg_id, title=title, url=url, icon=icon)
+
+    with open(path + 'teliaplay_iptv.m3u', 'w+') as f:
+        f.write(data)
+
+    xbmcgui.Dialog().notification(localized(30012), localized(30064), xbmcgui.NOTIFICATION_INFO)
+    return
 
 def router(param):
     args = dict(urlparse.parse_qsl(param))
@@ -2171,6 +2208,9 @@ def router(param):
         elif mode == 'pincode':
             pincode()
             xbmc.executebuiltin('Container.Refresh()')
+
+        elif mode == 'build_m3u':
+            build_m3u()
 
     else:
         home()

@@ -247,3 +247,31 @@ msgstr "Slett påloggingsinformasjon"
 msgctxt "#30057"
 msgid "Login credentials cleared."
 msgstr "Påloggingsinformasjon slettet."
+
+msgctxt "#30058"
+msgid "Profile"
+msgstr "Profil"
+
+msgctxt "#30059"
+msgid "Show catchup dialog"
+msgstr "Vis innhentingsdialog"
+
+msgctxt "#30060"
+msgid "M3U Generator"
+msgstr "M3U Generator"
+
+msgctxt "#30061"
+msgid "Create M3U playlist"
+msgstr "Opprett M3U spilleliste"
+
+msgctxt "#30062"
+msgid "Select output destination"
+msgstr "Velg utdatamål"
+
+msgctxt "#30063"
+msgid "Creating playlist M3U"
+msgstr "Oppretter spilleliste M3U"
+
+msgctxt "#30064"
+msgid "Playlist M3U has been created"
+msgstr "Spilleliste M3U er opprettet"

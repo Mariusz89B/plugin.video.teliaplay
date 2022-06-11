@@ -37,27 +37,6 @@
 						<hidden>true</hidden>
 					</control>
 				</setting>
-				<setting help="" id="teliaplay_adult_enabled" label="30047" type="boolean">
-					<level>0</level>
-					<default>true</default>
-					<control type="toggle"/>
-				</setting>
-				<setting help="" id="teliaplay_pincode" label="30046" type="string" parent="teliaplay_adult_enabled">
-					<level>0</level>
-					<default/>
-					<constraints>
-						<allowempty>true</allowempty>
-					</constraints>
-					<dependencies>
-						<dependency type="visible">
-							<condition operator="is" setting="teliaplay_adult_enabled">true</condition>
-						</dependency>
-					</dependencies>
-					<control format="string" type="edit">
-						<heading>30044</heading>
-						<hidden>true</hidden>
-					</control>
-				</setting>
 				<setting help="" id="teliaplay_cleardata" label="30056" type="action" parent="cmore_enabled">
 					<level>0</level>
 					<data>RunScript(special://home/addons/plugin.video.teliaplay/cleardata.py,cleardata)</data>
@@ -130,6 +109,50 @@
 					<visible>false</visible>
 					<control format="string" type="edit">
 						<heading/>
+					</control>
+				</setting>
+			</group>
+		</category>
+		<category help="" id="settings" label="30055">
+			<group id="1">
+				<setting help="" id="teliaplay_play_beginning" label="30059" type="boolean">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting help="" id="teliaplay_adult_enabled" label="30047" type="boolean">
+					<level>0</level>
+					<default>true</default>
+					<control type="toggle"/>
+				</setting>
+				<setting help="" id="teliaplay_pincode" label="30046" type="string" parent="teliaplay_adult_enabled">
+					<level>0</level>
+					<default/>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<dependencies>
+						<dependency type="visible">
+							<condition operator="is" setting="teliaplay_adult_enabled">true</condition>
+						</dependency>
+					</dependencies>
+					<control format="string" type="edit">
+						<heading>30044</heading>
+						<hidden>true</hidden>
+					</control>
+				</setting>
+			</group>
+		</category>
+		<category id="build_m3u" label="30060" help="">
+			<group id="1">
+				<setting id="create_playlist" type="action" label="30061" help="">
+					<level>0</level>
+					<data>RunPlugin(plugin://plugin.video.teliaplay?mode=build_m3u)</data>
+					<constraints>
+						<allowempty>true</allowempty>
+					</constraints>
+					<control type="button" format="action">
+						<close>true</close>
 					</control>
 				</setting>
 			</group>
