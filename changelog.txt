@@ -1,3 +1,6 @@
+v1.0.2 (2022-06-12)
+- Fixes.
+
 v1.0.1 (2022-06-11)
 - Fixed encoding for playlist generator.
 

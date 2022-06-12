@@ -301,7 +301,7 @@ def refresh_timedelta(valid_to):
 
     return result
 
-def login_service():
+def login_service(reconnect, retry=0):
     try:
         dashjs = addon.getSetting('teliaplay_devush')
         if dashjs == '':
@@ -312,7 +312,7 @@ def login_service():
                 pass
 
             create_data()
-            login = login_data(reconnect=False)
+            login = login_data(reconnect, retry)
 
         else:
             login = True
@@ -1103,7 +1103,9 @@ def search(query):
             get_items(data)
 
 def live_channels():
-    login = login_service()
+    channel_lst = []
+
+    login = login_service(reconnect=True)
     if not login:
         xbmcgui.Dialog().notification(localized(30012), localized(30006))
         raise Exception
@@ -1123,7 +1125,9 @@ def live_channels():
 
         engagementjson = send_req(url, headers=headers, verify=True)
         if not engagementjson:
-            raise Exception
+            addon.setSetting('teliaplay_devush', '')
+            print('errorMessage: {e}'.format(e=str(engagementjson)))
+            return live_channels()
 
         engagementjson = engagementjson.json()
 
@@ -1186,8 +1190,6 @@ def live_channels():
         channels = j_response['data']['channels']['channelItems']
 
         count = 0
-
-        channel_lst = []
 
         for channel in channels:
             if channel['id'] in engagementLiveChannels:
@@ -1989,7 +1991,7 @@ def home():
         profile_name = 'Telia Play'
         profile_avatar = icon
 
-    login = login_service()
+    login = login_service(reconnect=True)
 
     if login and not childmode:
         add_item(label=localized(30009).format(profile_name), url='', mode='logged', icon=profile_avatar, fanart=fanart, folder=False, playable=False)
