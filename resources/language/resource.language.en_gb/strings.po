@@ -275,3 +275,11 @@ msgstr ""
 msgctxt "#30064"
 msgid "Playlist M3U has been created"
 msgstr ""
+
+msgctxt "#30065"
+msgid "All content"
+msgstr ""
+
+msgctxt "#30066"
+msgid "Popular"
+msgstr ""

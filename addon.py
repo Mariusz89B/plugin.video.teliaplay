@@ -620,7 +620,7 @@ def vod_genre(genre):
         json = {
             'operationName': 'getCommonBrowsePage',
             'variables': {
-                'mediaContentLimit': 16,
+                'mediaContentLimit': 60,
                 'pageId': genre
             },
 
@@ -638,8 +638,12 @@ def vod_genre(genre):
 
                 items = None
 
+                title = item['title']
+
                 selection = item.get('selectionMediaContent')
                 media = item.get('mediaContent')
+                stores = item.get('storesContent')
+                showcase = item.get('showcaseContent')
 
                 if selection:
                     items = selection.get('items')
@@ -647,13 +651,86 @@ def vod_genre(genre):
                 elif media:
                     items = media.get('items')
 
+                elif showcase:
+                    items = showcase.get('items')
+                    if not title:
+                        title = localized(30066)
+
+                elif stores:
+                    items = stores.get('items')
+
                 if items:
-                    genres.append((key, item['title']))
+                    genres.append((key, title))
 
             for gen in genres:
                 add_item(label=gen[1], url=str(gen[0])+'|'+genre, mode='vod', icon=icon, fanart=fanart, folder=True, playable=False)
 
     xbmcplugin.endOfDirectory(addon_handle)
+
+def store(store_id):
+    idx = int(store_id.split('|')[0])
+    store = store_id.split('|')[-1]
+
+    beartoken = addon.getSetting('teliaplay_beartoken')
+    tv_client_boot_id = addon.getSetting('teliaplay_tv_client_boot_id')
+
+    url = 'https://graphql-telia.t6a.net/'
+
+    headers = {
+        'authorization': 'Bearer ' + beartoken,
+        'tv-client-name': 'androidmob',
+        'tv-client-version': '4.7.0',
+        'tv-client-boot-id': tv_client_boot_id,
+        'x-country': ca[country],
+        'content-type': 'application/json',
+        'accept-encoding': 'gzip',
+        'user-agent': 'okhttp/4.9.3',
+    }
+
+    json = {
+        'operationName': 'getMobileStore',
+        'variables': {
+            'mediaContentLimit': 60,
+            'id': store
+        },
+
+        'query': 'query getMobileStore($id: String!, $mediaContentLimit: Int!, $offset: Int) { store(id: $id) { id name pagePanels { items { __typename title id ...MobileSelectionMediaPanel ...MobileMediaPanel ...MobileStoresPanel ...MobileRentalsPanel ...MobileTimelinePanel ...MobileShowcasePanel ...MobileContinueWatchingPanel ...MobileMyListPanel ...MobilePageLinkPanel ...MobileSingleFeaturePanel } } } }  fragment PlaybackSpec on PlaybackSpec { accessControl videoId videoIdType watchMode }  fragment Vod on Vod { audioLang { name code } playbackSpec { __typename ...PlaybackSpec } price { readable } validFrom { timestamp readableDistance(type: FUZZY) } validTo { timestamp } }  fragment Linear on PlaybackPlayLinear { item { startover { playbackSpec { __typename ...PlaybackSpec } } playbackSpec { __typename ...PlaybackSpec } startTime { timestamp readableDistance(type: FUZZY) } endTime { timestamp } } }  fragment Rental on PlaybackPlayVodRental { item { __typename ...Vod } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) sTo } } }  fragment Recording on PlaybackPlayRecording { item { playbackSpec { __typename ...PlaybackSpec } audioLang { name code } validFrom { timestamp } validTo { timestamp } } startover { playbackSpec { __typename ...PlaybackSpec } } }  fragment DeepLink on DeepLink { uri serviceName googlePlayStoreId validFrom { timestamp } validTo { timestamp } }  fragment SubscriptionProductStandard on SubscriptionProductStandard { id price { readable } }  fragment SubscriptionProductDualEntry on SubscriptionProductDualEntry { id }  fragment SubscriptionProductTVE on SubscriptionProductTVE { id }  fragment SubscriptionProductFallback on SubscriptionProductFallback { id }  fragment Playback on Playback { play { subscription { item { __typename ...Vod } } linear { __typename ...Linear } rental { __typename ...Rental } npvr { __typename ...Recording } deepLinks { item { __typename ...DeepLink } } } buy { subscriptions { item { __typename id name ...SubscriptionProductStandard ...SubscriptionProductDualEntry ...SubscriptionProductTVE ...SubscriptionProductFallback } } rental { item { price { readable } validFrom { timestamp } validTo { timestamp } } } npvr { item { playbackSpec { __typename ...PlaybackSpec } } } deepLinks { item { __typename ...DeepLink } } } }  fragment MobilePageMovie on Movie { id title playback { __typename ...Playback } images { backdrop16x9 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } } descriptionLong price { readable } genre yearProduction { number } ageRating { readable } duration { readableShort } ratings { imdb { readableScore } } productionCountries userData { progress { percent position } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) } } } store { name } availability { from { text } } availableNow labels { premiereAnnouncement { text } } }  fragment MobilePageSeries on Series { id title images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } } description genre ageRating { readable } ratings { imdb { readableScore } } label webview { url } isRentalSeries }  fragment MobilePageEpisode on Episode { id title images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } screenshot16x9 { sourceNonEncoded } } descriptionLong price { readable } genre yearProduction { number } episodeNumber { number readable } seasonNumber { number readable } playback { __typename ...Playback } series { id title } ageRating { readable } duration { readableShort } userData { progress { percent position } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) } } } store { name } }  fragment MobilePageSportEvent on SportEvent { id title playback { __typename ...Playback } images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } } availability { from { text timestamp } } descriptionLong genre badges { uhd { text } } productionCountries ageRating { readable } duration { readableShort } store { name } league labels { airtime { text } } yearProduction { number } userData { progress { percent position } } venue }  fragment MobilePageMediaPanelContent on MediaPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileSelectionMediaPanel on SelectionMediaPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } ... on DisplayHintList { listSubType } ... on DisplayHintGrid { gridSubType } } selectionMediaContent(config: { limit: $mediaContentLimit offset: $offset } ) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobilePageMediaPanelContent } } } link { id type } }  fragment MobileMediaPanel on MediaPanel { id title kicker displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } ... on DisplayHintList { listSubType } ... on DisplayHintGrid { gridSubType } } mediaContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobilePageMediaPanelContent } } } }  fragment MobilePageStore on Store { id __typename name icons { light { sourceNonEncoded } dark { sourceNonEncoded } } }  fragment MobileStoresPanel on StoresPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } ... on DisplayHintGrid { gridSubType } ... on DisplayHintList { listSubType } } storesContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { __typename ...MobilePageStore } } }  fragment MobileRentalsPanelItemContent on RentalsPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } }  fragment MobileRentalsPanel on RentalsPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } rentalsContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobileRentalsPanelItemContent } } } }  fragment MobileTimeLinePanelItemContent on TimelinePanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileTimelinePanel on TimelinePanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } timelineContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobileTimeLinePanelItemContent } startTime { timestamp isoString } endTime { timestamp isoString } } } }  fragment Store on Store { name icons { dark { sourceNonEncoded } } }  fragment MobileShowcaseMovie on Movie { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } store { __typename ...Store } }  fragment MobileShowcaseEpisode on Episode { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } series { id } store { __typename ...Store } }  fragment MobileShowcaseSeries on Series { id title userData { favorite } images { backdrop16x9 { sourceNonEncoded } } webview { url } suggestedEpisode { id playback { __typename ...Playback } } store { __typename ...Store } }  fragment MobileShowcaseSportEvent on SportEvent { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } store { __typename ...Store } }  fragment ChannelPlayback on ChannelPlayback { play { playbackSpec { __typename ...PlaybackSpec } } buy { subscriptions { item { id } } } }  fragment MobileShowcaseChannel on Channel { channelPlayback: playback { __typename ...ChannelPlayback } }  fragment MobileShowcasePanel on ShowcasePanel { id title showcaseContent { items { id showcaseTitle { text } kicker images { showcase16x9 { sourceNonEncoded } showcase16x7 { sourceNonEncoded } showcase7x10 { sourceNonEncoded } showcase2x3 { sourceNonEncoded } } promotion { link { id type } content { __typename ...MobileShowcaseMovie ...MobileShowcaseEpisode ...MobileShowcaseSeries ...MobileShowcaseSportEvent ...MobileShowcaseChannel } } } } }  fragment MobileContinueWatchingPanelItemContent on ContinueWatchingPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileContinueWatchingPanel on ContinueWatchingPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } continueWatchingContent { items { media { __typename ...MobileContinueWatchingPanelItemContent } } } }  fragment MobileMyListPanelItemContent on MyListPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileMyListPanel on MyListPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } myListContent(limit: $mediaContentLimit) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobileMyListPanelItemContent } } } }  fragment MobilePageLinkPanel on PageLinkPanel { id title pageLinkContent { items { id name description type images { icon1x1 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } } } } }  fragment MobileSingleFeaturePanelMedia on SingleFeaturePanelMedia { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileSingleFeaturePanel on SingleFeaturePanel { id title subtitle images { __typename ... on SingleFeaturePanelImages { promo16x9 { sourceNonEncoded } } } media { __typename ...MobileSingleFeaturePanelMedia } }'
+    }
+
+    response = send_req(url, post=True, json=json, headers=headers)
+    if response:
+        j_response = response.json()
+        try:
+            data = j_response['data']['store']['pagePanels']['items'][idx]
+            items = None
+
+            selection = data.get('selectionMediaContent')
+            media = data.get('mediaContent')
+            stores = data.get('storesContent')
+            showcase = data.get('showcaseContent')
+
+            if selection:
+                items = selection.get('items')
+
+            elif media:
+                items = media.get('items')
+
+            elif showcase:
+                items = showcase.get('items')
+
+            elif stores:
+                items = stores.get('items')
+
+            if not items:
+                xbmcgui.Dialog().notification(localized(30012), localized(30048))
+                return
+
+            get_items(items)
+
+        except Exception as ex:
+            print('vod Exception: {}'.format(ex))
+            xbmcgui.Dialog().notification(localized(30012), localized(30048))
+            return
 
 def vod(genre_id):
     idx = int(genre_id.split('|')[0])
@@ -678,7 +755,7 @@ def vod(genre_id):
     json = {
         'operationName': 'getCommonBrowsePage',
         'variables': {
-            'mediaContentLimit': 16,
+            'mediaContentLimit': 60,
             'pageId': genre
         },
 
@@ -746,6 +823,11 @@ def get_items(data):
             elif typename == 'SportEvent':
                 mode = 'play'
 
+            elif typename == 'Store':
+                mode = 'vod_store'
+                folder = True
+                playable = False
+
             title = media.get('title')
             if not title:
                 title = media.get('name')
@@ -753,7 +835,6 @@ def get_items(data):
                     showcase_title = media.get('showcaseTitle')
                     if showcase_title:
                         title = showcase_title.get('text')
-
 
             label = title
             media_id = media.get('id')
@@ -1031,6 +1112,71 @@ def vod_episodes(season, season_id):
                 add_item(label=label, url='vod', mode='play', media_id=media_id, folder=False, playable=True, info_labels={'title': title, 'originaltitle': title, 'plot': plot, 'genre': genre, 'director': directors, 'cast': actors_lst, 'sortepisode': episode_nr, 'sortseason': season_nr, 'mpaa': age, 'year': date}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
 
     xbmcplugin.setContent(addon_handle, 'sets')
+    xbmcplugin.endOfDirectory(addon_handle)
+
+def vod_store(store_id):
+    beartoken = addon.getSetting('teliaplay_beartoken')
+    tv_client_boot_id = addon.getSetting('teliaplay_tv_client_boot_id')
+
+    url = 'https://graphql-telia.t6a.net/'
+
+    headers = {
+        'authorization': 'Bearer ' + beartoken,
+        'tv-client-name': 'androidmob',
+        'tv-client-version': '4.7.0',
+        'tv-client-boot-id': tv_client_boot_id,
+        'x-country': ca[country],
+        'content-type': 'application/json',
+        'accept-encoding': 'gzip',
+        'user-agent': 'okhttp/4.9.3',
+    }
+
+    json = {
+        'operationName': 'getMobileStore',
+
+        'variables': {
+            'id': store_id,
+            'mediaContentLimit': 60,
+        },
+
+        'query': 'query getMobileStore($id: String!, $mediaContentLimit: Int!, $offset: Int) { store(id: $id) { id name pagePanels { items { __typename title id ...MobileSelectionMediaPanel ...MobileMediaPanel ...MobileStoresPanel ...MobileRentalsPanel ...MobileTimelinePanel ...MobileShowcasePanel ...MobileContinueWatchingPanel ...MobileMyListPanel ...MobilePageLinkPanel ...MobileSingleFeaturePanel } } } }  fragment PlaybackSpec on PlaybackSpec { accessControl videoId videoIdType watchMode }  fragment Vod on Vod { audioLang { name code } playbackSpec { __typename ...PlaybackSpec } price { readable } validFrom { timestamp readableDistance(type: FUZZY) } validTo { timestamp } }  fragment Linear on PlaybackPlayLinear { item { startover { playbackSpec { __typename ...PlaybackSpec } } playbackSpec { __typename ...PlaybackSpec } startTime { timestamp readableDistance(type: FUZZY) } endTime { timestamp } } }  fragment Rental on PlaybackPlayVodRental { item { __typename ...Vod } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) sTo } } }  fragment Recording on PlaybackPlayRecording { item { playbackSpec { __typename ...PlaybackSpec } audioLang { name code } validFrom { timestamp } validTo { timestamp } } startover { playbackSpec { __typename ...PlaybackSpec } } }  fragment DeepLink on DeepLink { uri serviceName googlePlayStoreId validFrom { timestamp } validTo { timestamp } }  fragment SubscriptionProductStandard on SubscriptionProductStandard { id price { readable } }  fragment SubscriptionProductDualEntry on SubscriptionProductDualEntry { id }  fragment SubscriptionProductTVE on SubscriptionProductTVE { id }  fragment SubscriptionProductFallback on SubscriptionProductFallback { id }  fragment Playback on Playback { play { subscription { item { __typename ...Vod } } linear { __typename ...Linear } rental { __typename ...Rental } npvr { __typename ...Recording } deepLinks { item { __typename ...DeepLink } } } buy { subscriptions { item { __typename id name ...SubscriptionProductStandard ...SubscriptionProductDualEntry ...SubscriptionProductTVE ...SubscriptionProductFallback } } rental { item { price { readable } validFrom { timestamp } validTo { timestamp } } } npvr { item { playbackSpec { __typename ...PlaybackSpec } } } deepLinks { item { __typename ...DeepLink } } } }  fragment MobilePageMovie on Movie { id title playback { __typename ...Playback } images { backdrop16x9 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } } descriptionLong price { readable } genre yearProduction { number } ageRating { readable } duration { readableShort } ratings { imdb { readableScore } } productionCountries userData { progress { percent position } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) } } } store { name } availability { from { text } } availableNow labels { premiereAnnouncement { text } } }  fragment MobilePageSeries on Series { id title images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } } description genre ageRating { readable } ratings { imdb { readableScore } } label webview { url } isRentalSeries }  fragment MobilePageEpisode on Episode { id title images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } screenshot16x9 { sourceNonEncoded } } descriptionLong price { readable } genre yearProduction { number } episodeNumber { number readable } seasonNumber { number readable } playback { __typename ...Playback } series { id title } ageRating { readable } duration { readableShort } userData { progress { percent position } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) } } } store { name } }  fragment MobilePageSportEvent on SportEvent { id title playback { __typename ...Playback } images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } } availability { from { text timestamp } } descriptionLong genre badges { uhd { text } } productionCountries ageRating { readable } duration { readableShort } store { name } league labels { airtime { text } } yearProduction { number } userData { progress { percent position } } venue }  fragment MobilePageMediaPanelContent on MediaPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileSelectionMediaPanel on SelectionMediaPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } ... on DisplayHintList { listSubType } ... on DisplayHintGrid { gridSubType } } selectionMediaContent(config: { limit: $mediaContentLimit offset: $offset } ) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobilePageMediaPanelContent } } } link { id type } }  fragment MobileMediaPanel on MediaPanel { id title kicker displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } ... on DisplayHintList { listSubType } ... on DisplayHintGrid { gridSubType } } mediaContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobilePageMediaPanelContent } } } }  fragment MobilePageStore on Store { id __typename name icons { light { sourceNonEncoded } dark { sourceNonEncoded } } }  fragment MobileStoresPanel on StoresPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } ... on DisplayHintGrid { gridSubType } ... on DisplayHintList { listSubType } } storesContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { __typename ...MobilePageStore } } }  fragment MobileRentalsPanelItemContent on RentalsPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } }  fragment MobileRentalsPanel on RentalsPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } rentalsContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobileRentalsPanelItemContent } } } }  fragment MobileTimeLinePanelItemContent on TimelinePanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileTimelinePanel on TimelinePanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } timelineContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobileTimeLinePanelItemContent } startTime { timestamp isoString } endTime { timestamp isoString } } } }  fragment Store on Store { name icons { dark { sourceNonEncoded } } }  fragment MobileShowcaseMovie on Movie { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } store { __typename ...Store } }  fragment MobileShowcaseEpisode on Episode { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } series { id } store { __typename ...Store } }  fragment MobileShowcaseSeries on Series { id title userData { favorite } images { backdrop16x9 { sourceNonEncoded } } webview { url } suggestedEpisode { id playback { __typename ...Playback } } store { __typename ...Store } }  fragment MobileShowcaseSportEvent on SportEvent { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } store { __typename ...Store } }  fragment ChannelPlayback on ChannelPlayback { play { playbackSpec { __typename ...PlaybackSpec } } buy { subscriptions { item { id } } } }  fragment MobileShowcaseChannel on Channel { channelPlayback: playback { __typename ...ChannelPlayback } }  fragment MobileShowcasePanel on ShowcasePanel { id title showcaseContent { items { id showcaseTitle { text } kicker images { showcase16x9 { sourceNonEncoded } showcase16x7 { sourceNonEncoded } showcase7x10 { sourceNonEncoded } showcase2x3 { sourceNonEncoded } } promotion { link { id type } content { __typename ...MobileShowcaseMovie ...MobileShowcaseEpisode ...MobileShowcaseSeries ...MobileShowcaseSportEvent ...MobileShowcaseChannel } } } } }  fragment MobileContinueWatchingPanelItemContent on ContinueWatchingPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileContinueWatchingPanel on ContinueWatchingPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } continueWatchingContent { items { media { __typename ...MobileContinueWatchingPanelItemContent } } } }  fragment MobileMyListPanelItemContent on MyListPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileMyListPanel on MyListPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } myListContent(limit: $mediaContentLimit) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobileMyListPanelItemContent } } } }  fragment MobilePageLinkPanel on PageLinkPanel { id title pageLinkContent { items { id name description type images { icon1x1 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } } } } }  fragment MobileSingleFeaturePanelMedia on SingleFeaturePanelMedia { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileSingleFeaturePanel on SingleFeaturePanel { id title subtitle images { __typename ... on SingleFeaturePanelImages { promo16x9 { sourceNonEncoded } } } media { __typename ...MobileSingleFeaturePanelMedia } }'
+    }
+
+    response = send_req(url, post=True, json=json, headers=headers)
+    if response:
+        j_response = response.json()
+        data = j_response['data']['store']['pagePanels']['items']
+
+        genres = []
+
+        key = -1
+        for item in data:
+            key += 1
+
+            items = None
+
+            selection = item.get('selectionMediaContent')
+            media = item.get('mediaContent')
+            stores = item.get('storesContent')
+
+            if selection:
+                items = selection.get('items')
+
+            elif media:
+                items = media.get('items')
+
+            elif stores:
+                items = stores.get('items')
+
+            if items:
+                title = item['title']
+                if not title:
+                    title = localized(30065)
+                genres.append((key, title))
+
+        for gen in genres:
+            add_item(label=gen[1], url=str(gen[0])+'|'+str(store_id), mode='store', icon=icon, fanart=fanart, folder=True, playable=False)
+
     xbmcplugin.endOfDirectory(addon_handle)
 
 def vod_search():
@@ -1617,7 +1763,7 @@ def sports_genre():
                         g_count = int(count)
                     else:
                         g_count = 0
-                    
+
                     if g_count > 0:
                         genres.append(item['label'])
 
@@ -1708,8 +1854,8 @@ def sports_corner_genre():
         'operationName': 'getMobilePage',
 
         'variables': {
-            'channelsLimit': 100,
-            'mediaContentLimit': 500,
+            'channelsLimit': 200,
+            'mediaContentLimit': 60,
             'pageId': 'sports-corner',
             'timestamp': timestamp
         },
@@ -1728,14 +1874,36 @@ def sports_corner_genre():
         key = -1
         for item in data:
             key += 1
-            if item['title'] != '':
-                count = item.get('count')
-                if count:
-                    g_count = int(count)
-                else:
-                    g_count = 0
 
-                if g_count > 0:
+            items = None
+
+            pagelink = item.get('pageLinkContent')
+            timeline = item.get('timelineContent')
+            selection = item.get('selectionMediaContent')
+            media = item.get('mediaContent')
+            stores = item.get('storesContent')
+            showcase = item.get('showcaseContent')
+
+            if pagelink:
+                items = pagelink.get('items')
+
+            elif timeline:
+                items = timeline.get('items')
+
+            elif selection:
+                items = selection.get('items')
+
+            elif media:
+                items = media.get('items')
+
+            elif showcase:
+                items = showcase.get('items')
+
+            elif stores:
+                items = stores.get('items')
+
+            if items:
+                if item['title'] != '':
                     genres.append((key, item['title']))
 
         for gen in genres:
@@ -1771,8 +1939,8 @@ def sports_corner(genre_id):
         'operationName': 'getMobilePage',
 
         'variables': {
-            'channelsLimit': 100,
-            'mediaContentLimit': 500,
+            'channelsLimit': 200,
+            'mediaContentLimit': 60,
             'pageId': 'sports-corner',
             'timestamp': timestamp
         },
@@ -1810,7 +1978,7 @@ def sports_corner(genre_id):
         elif showcase:
             items = showcase.get('items')
 
-        else:
+        elif stores:
             items = stores.get('items')
 
         if not items:
@@ -1844,7 +2012,7 @@ def kids_genre():
     json_data = {
         'operationName': 'getCommonBrowsePage',
         'variables': {
-            'mediaContentLimit': 999,
+            'mediaContentLimit': 60,
             'pageId': 'play-library-kids'
         },
 
@@ -1912,7 +2080,7 @@ def kids(genre_id):
     json_data = {
         'operationName': 'getCommonBrowsePage',
         'variables': {
-            'mediaContentLimit': 500,
+            'mediaContentLimit': 60,
             'pageId': 'play-library-kids'
         },
 
@@ -2194,6 +2362,12 @@ def router(param):
 
         elif mode == 'vod':
             vod(exlink)
+
+        elif mode == 'vod_store':
+            vod_store(exid)
+
+        elif mode == 'store':
+            store(exlink)
 
         elif mode == 'seasons':
             vod_seasons(exid)

@@ -275,3 +275,11 @@ msgstr "Oppretter spilleliste M3U"
 msgctxt "#30064"
 msgid "Playlist M3U has been created"
 msgstr "Spilleliste M3U er opprettet"
+
+msgctxt "#30065"
+msgid "All content"
+msgstr "Alt innhold"
+
+msgctxt "#30066"
+msgid "Popular"
+msgstr "Populært"
