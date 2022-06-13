@@ -596,7 +596,6 @@ def vod_genre(genre):
         }
 
     response = send_req(url, post=True, json=json, headers=headers)
-
     if response:
         j_response = response.json()
 
@@ -636,7 +635,20 @@ def vod_genre(genre):
             key = -1
             for item in data:
                 key += 1
-                genres.append((key, item['title']))
+
+                items = None
+
+                selection = item.get('selectionMediaContent')
+                media = item.get('mediaContent')
+
+                if selection:
+                    items = selection.get('items')
+
+                elif media:
+                    items = media.get('items')
+
+                if items:
+                    genres.append((key, item['title']))
 
             for gen in genres:
                 add_item(label=gen[1], url=str(gen[0])+'|'+genre, mode='vod', icon=icon, fanart=fanart, folder=True, playable=False)
@@ -694,7 +706,7 @@ def vod(genre_id):
             elif showcase:
                 items = showcase.get('items')
 
-            else:
+            elif stores:
                 items = stores.get('items')
 
             if not items:
@@ -737,6 +749,11 @@ def get_items(data):
             title = media.get('title')
             if not title:
                 title = media.get('name')
+                if not title:
+                    showcase_title = media.get('showcaseTitle')
+                    if showcase_title:
+                        title = showcase_title.get('text')
+
 
             label = title
             media_id = media.get('id')
@@ -1845,7 +1862,28 @@ def kids_genre():
         key = -1
         for item in data:
             key += 1
-            genres.append((key, item['title']))
+
+            items = None
+
+            selection = item.get('selectionMediaContent')
+            media = item.get('mediaContent')
+            stores = item.get('storesContent')
+            showcase = item.get('showcaseContent')
+
+            if selection:
+                items = selection.get('items')
+
+            elif media:
+                items = media.get('items')
+
+            elif showcase:
+                items = showcase.get('items')
+
+            else:
+                items = stores.get('items')
+
+            if items:
+                genres.append((key, item['title']))
 
         for gen in genres:
             add_item(label=gen[1], url=str(gen[0]), mode='kids', icon=icon, fanart=fanart, folder=True, playable=False)
@@ -1902,7 +1940,7 @@ def kids(genre_id):
             elif showcase:
                 items = showcase.get('items')
 
-            else:
+            elif stores:
                 items = stores.get('items')
 
             if not items:
