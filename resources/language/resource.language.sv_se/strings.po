@@ -247,3 +247,39 @@ msgstr "Rensa inloggningsuppgifter"
 msgctxt "#30057"
 msgid "Login credentials cleared."
 msgstr "Inloggningsuppgifter rensades."
+
+msgctxt "#30058"
+msgid "Profile"
+msgstr "Profil"
+
+msgctxt "#30059"
+msgid "Show catchup dialog"
+msgstr "Visa catchup dialogruta"
+
+msgctxt "#30060"
+msgid "M3U Generator"
+msgstr "M3U Generator"
+
+msgctxt "#30061"
+msgid "Create M3U playlist"
+msgstr "Skapa M3U spellista"
+
+msgctxt "#30062"
+msgid "Select output destination"
+msgstr "Välj utdata destination"
+
+msgctxt "#30063"
+msgid "Creating playlist M3U"
+msgstr "Skapar spellista M3U"
+
+msgctxt "#30064"
+msgid "Playlist M3U has been created"
+msgstr "Spellista M3U har skapats"
+
+msgctxt "#30065"
+msgid "All content"
+msgstr "Allt innehåll"
+
+msgctxt "#30066"
+msgid "Popular"
+msgstr "Populärt"

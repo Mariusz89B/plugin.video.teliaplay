@@ -247,3 +247,39 @@ msgstr "Ryd login oplysninger"
 msgctxt "#30057"
 msgid "Login credentials cleared."
 msgstr "Loginoplysninger ryddet."
+
+msgctxt "#30058"
+msgid "Profile"
+msgstr "Profil"
+
+msgctxt "#30059"
+msgid "Show catchup dialog"
+msgstr "Vis indhentningsdialog"
+
+msgctxt "#30060"
+msgid "M3U Generator"
+msgstr "M3U Generator"
+
+msgctxt "#30061"
+msgid "Create M3U playlist"
+msgstr "Opret M3U spilleliste"
+
+msgctxt "#30062"
+msgid "Select output destination"
+msgstr "Vælg outputdestination"
+
+msgctxt "#30063"
+msgid "Creating playlist M3U"
+msgstr "Opretter spilleliste M3U"
+
+msgctxt "#30064"
+msgid "Playlist M3U has been created"
+msgstr "Playlist M3U er blevet oprettet"
+
+msgctxt "#30065"
+msgid "All content"
+msgstr "Alt indhold"
+
+msgctxt "#30066"
+msgid "Popular"
+msgstr "Populært"
