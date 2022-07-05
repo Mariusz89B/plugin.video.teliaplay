@@ -149,7 +149,7 @@ class Threading(object):
     def run(self):
         while not xbmc.Monitor().abortRequested():
             ab = check_refresh()
-            if not ab:
+            if ab:
                 result = check_login()
                 if result is not None:
                     validTo, beartoken, refrtoken, cookies = result
@@ -243,8 +243,6 @@ def create_data():
     return dashjs, tv_client_boot_id, timestamp, sessionid
 
 def check_login():
-    result = None
-
     valid_to = addon.getSetting('teliaplay_validto')
     beartoken = addon.getSetting('teliaplay_beartoken')
     refrtoken = addon.getSetting('teliaplay_refrtoken')
@@ -255,9 +253,15 @@ def check_login():
     if not valid_to:
         valid_to = datetime.now() + timedelta(days=1)
 
-    if (not beartoken or refresh < timedelta(minutes=1)):
+    if not beartoken or refresh < timedelta(minutes=1):
         login = login_data(reconnect=True)
-        result = valid_to, beartoken, refrtoken, cookies
+        if login:
+            valid_to = addon.getSetting('teliaplay_validto')
+            beartoken = addon.getSetting('teliaplay_beartoken')
+            refrtoken = addon.getSetting('teliaplay_refrtoken')
+            cookies = addon.getSetting('teliaplay_cookies')
+
+    result = valid_to, beartoken, refrtoken, cookies
 
     return result
 
@@ -271,7 +275,7 @@ def check_refresh():
         valid_to = datetime.now() + timedelta(days=1)
 
     if refresh:
-        refr = True if (not beartoken or refresh < timedelta(minutes=1)) else False
+        refr = True if not beartoken or refresh < timedelta(minutes=1) else False
     else:
         refr = False
 
@@ -329,6 +333,8 @@ def login_service(reconnect, retry=0):
     return False
 
 def login_data(reconnect, retry=0):
+    print('TEST2112')
+    print(retry)
     dashjs, tv_client_boot_id, timestamp, sessionid = create_data()
 
     try:
@@ -491,8 +497,9 @@ def login_data(reconnect, retry=0):
                 xbmcgui.Dialog().notification(localized(30012), localized(30013))
                 addon.setSetting('teliaplay_sess_id', '')
                 addon.setSetting('teliaplay_devush', '')
-                if reconnect:
-                    login_service(reconnect=True)
+                if reconnect and retry < 1:
+                    retry += 1
+                    login_service(reconnect=True, retry=retry)
                 else:
                     return False
 
@@ -502,8 +509,9 @@ def login_data(reconnect, retry=0):
                     xbmcgui.Dialog().notification(localized(30012), localized(30006))
                 addon.setSetting('teliaplay_sess_id', '')
                 addon.setSetting('teliaplay_devush', '')
-                if reconnect:
-                    login_service(reconnect=True)
+                if reconnect and retry < 1:
+                    retry += 1
+                    login_service(reconnect=True, retry=retry)
                 else:
                     return False
 
@@ -513,13 +521,14 @@ def login_data(reconnect, retry=0):
                     xbmcgui.Dialog().notification(localized(30012), localized(30006))
                 tv_client_boot_id = str(uuid.uuid4())
                 addon.setSetting('teliaplay_tv_client_boot_id', str(tv_client_boot_id))
-                if reconnect:
-                    login_service(reconnect=True)
+                if reconnect and retry < 1:
+                    retry += 1
+                    login_service(reconnect=True, retry=retry)
                 else:
                     return False
 
         except:
-            pass
+            return
 
         cookies = {}
 
@@ -539,8 +548,9 @@ def login_data(reconnect, retry=0):
         response = send_req(url, headers=headers, cookies=sess.cookies, allow_redirects=False, timeout=timeouts)
 
         if not response:
-            if reconnect:
-                login_service(reconnect=True)
+            if reconnect and retry < 3:
+                retry += 1
+                login_service(reconnect=True, retry=retry)
             else:
                 return False
 
@@ -1268,7 +1278,7 @@ def search(query):
 def live_channels():
     channel_lst = []
 
-    login = login_service(reconnect=True)
+    login = login_service(reconnect=False)
     if not login:
         xbmcgui.Dialog().notification(localized(30012), localized(30006))
         raise Exception
@@ -2126,6 +2136,7 @@ def favourites():
     xbmc.executebuiltin("ActivateWindow(10134)")
 
 def play(exlink, title, media_id, catchup_type, start, end):
+    check_login()
     if exlink != 'vod':
         now = int(time.time())
 
@@ -2197,7 +2208,7 @@ def home():
         profile_name = 'Telia Play'
         profile_avatar = icon
 
-    login = login_service(reconnect=True)
+    login = login_service(reconnect=False)
 
     if login and not childmode:
         add_item(label=localized(30009).format(profile_name), url='', mode='logged', icon=profile_avatar, fanart=fanart, folder=False, playable=False)
