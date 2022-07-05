@@ -247,39 +247,3 @@ msgstr ""
 msgctxt "#30057"
 msgid "Login credentials cleared."
 msgstr ""
-
-msgctxt "#30058"
-msgid "Profile"
-msgstr ""
-
-msgctxt "#30059"
-msgid "Show catchup dialog"
-msgstr ""
-
-msgctxt "#30060"
-msgid "M3U Generator"
-msgstr ""
-
-msgctxt "#30061"
-msgid "Create M3U playlist"
-msgstr ""
-
-msgctxt "#30062"
-msgid "Select output destination"
-msgstr ""
-
-msgctxt "#30063"
-msgid "Creating playlist M3U"
-msgstr ""
-
-msgctxt "#30064"
-msgid "Playlist M3U has been created"
-msgstr ""
-
-msgctxt "#30065"
-msgid "All content"
-msgstr ""
-
-msgctxt "#30066"
-msgid "Popular"
-msgstr ""

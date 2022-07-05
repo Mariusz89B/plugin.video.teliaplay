@@ -1,20 +1,3 @@
-v1.0.4 (2022-06-13)
-- Added Playservices in series category.
-- Other fixes.
-
-v1.0.3 (2022-06-13)
-- Removed empty categories.
-
-v1.0.2 (2022-06-12)
-- Fixes.
-
-v1.0.1 (2022-06-11)
-- Fixed encoding for playlist generator.
-
-v1.0 (2022-06-11)
-- Added M3U playlist generator.
-- Code refactoring.
-
 v0.5 (2022-06-10)
 - Hotfix.
 
