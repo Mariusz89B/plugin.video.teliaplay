@@ -159,10 +159,10 @@ class Threading(object):
                     addon.setSetting('teliaplay_refrtoken', str(refrtoken))
                     addon.setSetting('teliaplay_cookies', str(cookies))
 
-                time.sleep(30)
-
             if xbmc.Monitor().waitForAbort(1):
                 break
+
+            time.sleep(60)
 
 def build_url(query):
     return base_url + '?' + urlencode(query)
@@ -307,8 +307,11 @@ def refresh_timedelta(valid_to):
 
 def login_service(reconnect, retry=0):
     try:
+        login = False
+
         dashjs = addon.getSetting('teliaplay_devush')
-        if dashjs == '':
+        valid_to = addon.getSetting('teliaplay_valid_to')
+        if dashjs == '' and valid_to == '':
             try:
                 msg = localized(30000)
                 xbmcgui.Dialog().ok(localized(30012), str(msg))
@@ -406,7 +409,7 @@ def login_data(reconnect, retry=0):
 
         if not response:
             xbmcgui.Dialog().notification(localized(30012), localized(30006))
-            return
+            return False
 
         j_response = response.json()
         code = j_response['redirectUri'].replace('https://www.teliaplay.{cc}/?code='.format(cc=cc[country]), '')
@@ -526,7 +529,7 @@ def login_data(reconnect, retry=0):
                     return False
 
         except:
-            return
+            return False
 
         cookies = {}
 
