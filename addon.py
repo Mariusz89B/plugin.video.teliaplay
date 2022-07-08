@@ -529,7 +529,7 @@ def login_data(reconnect, retry=0):
                     return False
 
         except:
-            return False
+            pass
 
         cookies = {}
 
