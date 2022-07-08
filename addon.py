@@ -151,7 +151,7 @@ class Threading(object):
             ab = check_refresh()
             if ab:
                 result = check_login()
-                if result is not None:
+                if result:
                     validTo, beartoken, refrtoken, cookies = result
 
                     addon.setSetting('teliaplay_validto', str(validTo))
@@ -254,7 +254,7 @@ def check_login():
         valid_to = datetime.now() + timedelta(days=1)
 
     if not beartoken or refresh < timedelta(minutes=1):
-        login = login_data(reconnect=True)
+        login = login_service(reconnect=False)
         if login:
             valid_to = addon.getSetting('teliaplay_validto')
             beartoken = addon.getSetting('teliaplay_beartoken')
@@ -333,8 +333,6 @@ def login_service(reconnect, retry=0):
     return False
 
 def login_data(reconnect, retry=0):
-    print('TEST2112')
-    print(retry)
     dashjs, tv_client_boot_id, timestamp, sessionid = create_data()
 
     try:

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.teliaplay" name="Telia Play" version="1.0.5" provider-name="mariusz89b">
+<addon id="plugin.video.teliaplay" name="Telia Play" version="1.0.6" provider-name="mariusz89b">
   <requires>
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.inputstreamhelper" version="0.2.4"/>
@@ -24,7 +24,10 @@
     <platform>all</platform>
     <license>GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 and MIT LICENSE.</license>
     <source>https://github.com/Mariusz89B/plugin.video.teliaplay</source>
-    <news>v1.0.5 (2022-07-02)
+    <news>v1.0.6 (2022-07-08)
+- Bug fixes.
+
+v1.0.5 (2022-07-02)
 - Login fix.
 
 v1.0.4 (2022-06-13)
