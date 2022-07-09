@@ -310,7 +310,7 @@ def login_service(reconnect, retry=0):
         login = False
 
         dashjs = addon.getSetting('teliaplay_devush')
-        valid_to = addon.getSetting('teliaplay_valid_to')
+        valid_to = addon.getSetting('teliaplay_validto')
         if dashjs == '' and valid_to == '':
             try:
                 msg = localized(30000)
