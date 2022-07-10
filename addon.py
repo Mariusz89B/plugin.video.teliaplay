@@ -61,7 +61,6 @@ from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestExce
 
 import re
 import time
-import threading
 import six
 import uuid
 import iso8601
@@ -227,9 +226,6 @@ def check_login():
     cookies = addon.getSetting('teliaplay_cookies')
 
     refresh = refresh_timedelta(valid_to)
-
-    if not valid_to:
-        valid_to = datetime.now() + timedelta(days=1)
 
     if not beartoken or refresh < timedelta(minutes=1):
         login = login_data(reconnect=False)
