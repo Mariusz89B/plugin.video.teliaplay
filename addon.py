@@ -95,6 +95,7 @@ clearlogo = os.path.join(resources, 'clearlogo.png')
 fanart = os.path.join(resources, 'fanart.jpg')
 icon = os.path.join(path, 'icon.png')
 
+live_icon = os.path.join(icons, 'live.png')
 tv_icon = os.path.join(icons, 'tv.png')
 vod_icon = os.path.join(icons, 'vod.png')
 sport_icon = os.path.join(icons, 'sport.png')
@@ -520,6 +521,10 @@ def login_data(reconnect, retry=0):
     return False
 
 def video_on_demand():
+    login = check_login()
+    if not login:
+        login_data(reconnect=False)
+
     add_item(label=localized(30030), url='', mode='vod_genre_movies', icon=icon, fanart=fanart, folder=True, playable=False)
     add_item(label=localized(30031), url='', mode='vod_genre_series', icon=icon, fanart=fanart, folder=True, playable=False)
 
@@ -869,6 +874,7 @@ def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlo
             xbmcplugin.addSortMethod(addon_handle, sortMethod=xbmcplugin.SORT_METHOD_TITLE, label2Mask = "%R, %Y, %P")
 
             if title not in titles:
+                count += 1
                 add_item(label=title, url='vod', mode=mode, media_id=media_id, folder=folder, playable=playable, info_labels={'title': label, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': date, 'dateadded': date, 'duration': duration, 'genre': genre, 'userrating': rating, 'mpaa': age}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
                 titles.add(title)
 
@@ -992,16 +998,20 @@ def vod_episodes(season, season_id):
                 episode_raw = item.get('episodeNumber')
                 if episode_raw:
                     episode_read = str(episode_raw['readable'])
-                    nr_pattern = re.compile('(\d+)')
+                    nr_pattern = re.compile(r'(\d+)')
                     r = nr_pattern.search(episode_read)
                     episode_nr = r.group(1) if r else ''
+                else:
+                    episode_nr = ''
 
                 season_raw = item.get('seasonNumber')
                 if season_raw:
                     season_read = str(season_raw['readable'])
-                    nr_pattern = re.compile('(\d+)')
+                    nr_pattern = re.compile(r'(\d+)')
                     r = nr_pattern.search(season_read)
                     season_nr = r.group(1) if r else ''
+                else:
+                    season_nr = ''
 
                 label = episode_read
 
@@ -1171,6 +1181,10 @@ def vod_search():
     return search
 
 def search(query):
+    login = check_login()
+    if not login:
+        login_data(reconnect=False)
+
     if query:
         beartoken = addon.getSetting('teliaplay_beartoken')
         tv_client_boot_id = addon.getSetting('teliaplay_tv_client_boot_id')
@@ -1210,6 +1224,146 @@ def search(query):
             j_response = response.json()
             data = j_response['data']['search2']['searchItems']
             get_items(data)
+
+def now_playing(thumb=thumb, poster=poster, banner=banner, clearlogo=clearlogo, icon=icon, fanart=fanart):
+    country            = int(addon.getSetting('teliaplay_locale'))
+    beartoken          = addon.getSetting('teliaplay_beartoken')
+    tv_client_boot_id  = addon.getSetting('teliaplay_tv_client_boot_id')
+
+    n = datetime.now()
+    now = int(time.mktime(n.timetuple())) * 1000
+
+    try:
+        url = 'https://graphql-telia.t6a.net/'
+
+        headers = {
+            'authorization': 'Bearer ' + beartoken,
+            'tv-client-name': 'androidmob',
+            'tv-client-version': '4.7.0',
+            'tv-client-boot-id': tv_client_boot_id,
+            'x-country': ca[country],
+            'content-type': 'application/json',
+            'accept-encoding': 'gzip',
+            'user-agent': 'okhttp/4.9.3',
+        }
+
+        json = {
+            "operationName": "GetEPGChannelList",
+            "query": "query GetEPGChannelList($channelLimit: Int, $programLimit: Int, $timestamp: Timestamp!) {\n  channels(limit: $channelLimit) {\n    channelItems {\n      ...ChannelItem\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment ChannelItem on Channel {\n  id\n  name\n  recordAndWatch\n  playback {\n    play {\n      playbackSpec {\n        ...PlaybackSpec\n        __typename\n      }\n      __typename\n    }\n    buy {\n      ...GraphQLChannelPlaybackBuyFragment\n      __typename\n    }\n    __typename\n  }\n  icons {\n    light {\n      sourceNonEncoded\n      __typename\n    }\n    dark {\n      sourceNonEncoded\n      __typename\n    }\n    __typename\n  }\n  programs(timestamp: $timestamp, limit: $programLimit) {\n    programItems {\n      ...ProgramItem\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment PlaybackSpec on PlaybackSpec {\n  accessControl\n  videoId\n  videoIdType\n  watchMode\n  __typename\n}\n\nfragment GraphQLChannelPlaybackBuyFragment on ChannelPlaybackBuy {\n  subscriptions {\n    item {\n      ...GraphQLSubscriptionProductStandardFragment\n      ...GraphQLSubscriptionProductIAPFragment\n      ...GraphQLSubscriptionProductTVEFragment\n      ...GraphQLSubscriptionProductDualEntry\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment GraphQLSubscriptionProductStandardFragment on SubscriptionProductStandard {\n  id\n  name\n  uniqueSellingPoints {\n    ...GraphQLSubscriptionProductUniqueSellingPoint\n    __typename\n  }\n  gqlPrice: price {\n    readable\n    __typename\n  }\n  __typename\n}\n\nfragment GraphQLSubscriptionProductUniqueSellingPoint on SubscriptionProductUniqueSellingPoint {\n  sellingPoint\n  __typename\n}\n\nfragment GraphQLSubscriptionProductIAPFragment on SubscriptionProductIAP {\n  id\n  name\n  iTunesConnectId\n  uniqueSellingPoints {\n    ...GraphQLSubscriptionProductUniqueSellingPoint\n    __typename\n  }\n  __typename\n}\n\nfragment GraphQLSubscriptionProductTVEFragment on SubscriptionProductTVE {\n  id\n  name\n  __typename\n}\n\nfragment GraphQLSubscriptionProductDualEntry on SubscriptionProductDualEntry {\n  id\n  name\n  __typename\n}\n\nfragment ProgramItem on Program {\n  live\n  id\n  startTime {\n    timestamp\n    isoString\n    __typename\n  }\n  endTime {\n    timestamp\n    isoString\n    __typename\n  }\n  title\n  media {\n    ... on Movie {\n      ...MovieProgram\n      __typename\n    }\n    ... on Episode {\n      ...EpisodeProgram\n      __typename\n    }\n    ... on SportEvent {\n      ...SportProgram\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment MovieProgram on Movie {\n  id\n  images {\n    screenshot16x9 {\n      sourceNonEncoded\n      __typename\n    }\n    backdrop16x9 {\n      sourceNonEncoded\n      __typename\n    }\n    __typename\n  }\n  mediaType\n  title\n  availableNow\n  availability {\n    from {\n      timestamp\n      __typename\n    }\n    to {\n      timestamp\n      text\n      __typename\n    }\n    __typename\n  }\n  descriptionLong\n  playback {\n    ...PlaybackItem\n    buy {\n      ...GraphQLPlaybackBuyFragment\n      ...BuyItem\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment PlaybackItem on Playback {\n  play {\n    linear {\n      ...Linear\n      __typename\n    }\n    subscription {\n      item {\n        validFrom {\n          timestamp\n          __typename\n        }\n        validTo {\n          timestamp\n          __typename\n        }\n        playbackSpec {\n          ...PlaybackSpec\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    npvr {\n      item {\n        validFrom {\n          timestamp\n          __typename\n        }\n        validTo {\n          timestamp\n          __typename\n        }\n        playbackSpec {\n          ...PlaybackSpec\n          __typename\n        }\n        __typename\n      }\n      live {\n        playbackSpec {\n          ...PlaybackSpec\n          __typename\n        }\n        __typename\n      }\n      startover {\n        playbackSpec {\n          ...PlaybackSpec\n          __typename\n        }\n        __typename\n      }\n      npvrInfo {\n        originalAirDate {\n          startDate {\n            timestamp\n            isoString\n            __typename\n          }\n          __typename\n        }\n        series {\n          active\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment Linear on PlaybackPlayLinear {\n  item {\n    isLive\n    startover {\n      playbackSpec {\n        ...PlaybackSpec\n        __typename\n      }\n      __typename\n    }\n    playbackSpec {\n      ...PlaybackSpec\n      __typename\n    }\n    startTime {\n      timestamp\n      readableDistance(type: FUZZY)\n      __typename\n    }\n    endTime {\n      timestamp\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment GraphQLPlaybackBuyFragment on PlaybackBuy {\n  subscriptions {\n    item {\n      ...GraphQLSubscriptionProductStandardFragment\n      ...GraphQLSubscriptionProductIAPFragment\n      ...GraphQLSubscriptionProductTVEFragment\n      ...GraphQLSubscriptionProductDualEntry\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment BuyItem on PlaybackBuy {\n  subscription {\n    item {\n      validFrom {\n        timestamp\n        __typename\n      }\n      validTo {\n        timestamp\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  npvr {\n    item {\n      validFrom {\n        timestamp\n        __typename\n      }\n      validTo {\n        timestamp\n        __typename\n      }\n      playbackSpec {\n        ...PlaybackSpec\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment EpisodeProgram on Episode {\n  id\n  images {\n    screenshot16x9 {\n      sourceNonEncoded\n      __typename\n    }\n    backdrop16x9 {\n      sourceNonEncoded\n      __typename\n    }\n    __typename\n  }\n  availableNow\n  availability {\n    from {\n      timestamp\n      __typename\n    }\n    to {\n      timestamp\n      text\n      __typename\n    }\n    __typename\n  }\n  title\n  descriptionLong\n  series {\n    id\n    title\n    isRecordable\n    userData {\n      npvrInfo {\n        active\n        episodes {\n          ongoing\n          recorded\n          scheduled\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  playback {\n    ...PlaybackItem\n    buy {\n      ...GraphQLPlaybackBuyFragment\n      ...BuyItem\n      __typename\n    }\n    __typename\n  }\n  episodeNumber {\n    readable\n    __typename\n  }\n  seasonNumber {\n    readable\n    __typename\n  }\n  __typename\n}\n\nfragment SportProgram on SportEvent {\n  id\n  title\n  availableNow\n  availability {\n    from {\n      timestamp\n      __typename\n    }\n    to {\n      timestamp\n      text\n      __typename\n    }\n    __typename\n  }\n  playback {\n    ...PlaybackItem\n    buy {\n      ...GraphQLPlaybackBuyFragment\n      ...BuyItem\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n",
+            "variables": {
+                "channelLimit": 200,
+                "programLimit": 1,
+                "timestamp": int(now),
+            }
+        }
+
+        response = send_req(url, post=True, json=json, headers=headers)
+        if not response:
+            xbmcgui.Dialog().notification(localized(30012), localized(30006))
+            raise Exception
+
+        j_response = response.json()
+        channels = j_response['data']['channels']['channelItems']
+
+        count = 0
+
+        for channel in channels:
+            ch_name = channel.get('name')
+            programs = channel.get('programs')
+            icons = channel.get('icons')
+            exlink = channel.get('id')
+
+            if icons:
+                dark = icons.get('dark')
+                if dark:
+                    src = dark.get('sourceNonEncoded')
+                    if src:
+                        icon = unquote(src)
+
+            if programs:
+                program_items = programs.get('programItems')
+                for program in program_items:
+                    start = program.get('startTime')
+                    if start:
+                        start_ts = start.get('timestamp')
+                        if isinstance(start_ts, int):
+                            start_time = start_ts // 1000
+                            dt_start = datetime.fromtimestamp(start_time)
+                            st_start = dt_start.strftime('%H:%M')
+                    else:
+                        st_start = None
+
+                    end = program.get('endTime')
+                    if end:
+                        end_ts = end.get('timestamp')
+                        if isinstance(end_ts, int):
+                            end_time = end_ts // 1000
+                            dt_end = datetime.fromtimestamp(end_time)
+                            st_end = dt_end.strftime('%H:%M')
+                    else:
+                        st_end = None
+
+                    title = program.get('title')
+
+                    media = program.get('media')
+                    if media:
+                        count += 1
+                        media_id = media.get('id') 
+
+                        images = media.get('images')
+                        if images:
+                            card_16x9 = images.get('screenshot16x9') if images.get('screenshot16x9') else images.get('backdrop16x9')
+                            if card_16x9:
+                                src = card_16x9.get('sourceNonEncoded')
+                                if not src:
+                                    src = card_16x9.get('source')
+                                if src:
+                                    poster = unquote(src)
+
+                        plot = media.get('descriptionLong')
+                        outline = plot
+
+                        today = datetime.strftime(datetime.now(), '%Y-%m-%d')
+
+                        if st_start and st_end:
+                            date = st_start + ' - ' + st_end
+                            duration = int(end_time) - int(start_time)
+                        else:
+                            date = ''
+                            duration = ''
+
+                        label = title + '[B][COLOR violet] ● [/COLOR][/B]' + '[COLOR grey]({0})[/COLOR]'.format(date)
+
+                        episode_raw = media.get('episodeNumber')
+                        if episode_raw:
+                            episode_read = str(episode_raw['readable'])
+                            nr_pattern = re.compile(r'(\d+)')
+                            r = nr_pattern.search(episode_read)
+                            episode_nr = r.group(1) if r else ''
+                        else:
+                            episode_nr = ''
+
+                        season_raw = media.get('seasonNumber')
+                        if season_raw:
+                            season_read = str(season_raw['readable'])
+                            nr_pattern = re.compile(r'(\d+)')
+                            r = nr_pattern.search(season_read)
+                            season_nr = r.group(1) if r else ''
+                        else:
+                            season_nr = ''
+
+                        catchup = 'LIVE'
+
+                        ext = localized(30027)
+                        context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(title))]
+
+                        add_item(label=label, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': label, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': today, 'dateadded': today, 'duration': duration, 'sortepisode': episode_nr, 'sortseason': season_nr}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
+
+        xbmcplugin.setContent(addon_handle, 'playlists')
+        xbmcplugin.endOfDirectory(addon_handle)
+
+    except Exception as ex:
+        print('live_channels exception: {}'.format(ex))
 
 def live_channels():
     channel_lst = []
@@ -1386,16 +1540,28 @@ def live_channel(exlink, extitle):
             now = int(time.time())
 
             try:
-                start = program['startTime']['timestamp'] // 1000
-                dt_start = datetime.fromtimestamp(start)
-                st_start = dt_start.strftime('%H:%M')
-                da_start = dt_start.strftime('%Y-%m-%d')
+                start = program.get('startTime')
+                if start:
+                    start_ts = start.get('timestamp')
+                    if isinstance(start_ts, int):
+                        start_time = start_ts // 1000
+                        dt_start = datetime.fromtimestamp(start_time)
+                        st_start = dt_start.strftime('%H:%M')
+                        da_start = dt_start.strftime('%Y-%m-%d')
+                else:
+                    st_start = None
 
-                end = program['endTime']['timestamp'] // 1000
-                dt_end = datetime.fromtimestamp(end)
-                st_end = dt_end.strftime('%H:%M')
+                end = program.get('endTime')
+                if end:
+                    end_ts = end.get('timestamp')
+                    if isinstance(end_ts, int):
+                        end_time = end_ts // 1000
+                        dt_end = datetime.fromtimestamp(end_time)
+                        st_end = dt_end.strftime('%H:%M')
+                else:
+                    st_end = None
 
-                duration = end - start
+                duration = int(end_time) - int(start_time)
 
                 aired = da_start
                 date = st_start + ' - ' + st_end
@@ -1403,10 +1569,10 @@ def live_channel(exlink, extitle):
                 if len(title) > 50:
                     title = title[:50]
 
-                if int(now) >= int(start) and int(now) <= int(end):
+                if int(now) >= int(start_time) and int(now) <= int(end_time):
                     name_ = title + '[B][COLOR violet] ● [/COLOR][/B]'
 
-                elif int(end) >= int(now):
+                elif int(end_time) >= int(now):
                     name_ = '[COLOR grey]{0}[/COLOR] [B][/B]'.format(title)
 
                 else:
@@ -1418,8 +1584,8 @@ def live_channel(exlink, extitle):
                 name_ = title + '[B][COLOR violet] ● [/COLOR][/B]'
                 name = name_ + '[COLOR grey](00:00 - 23:59)[/COLOR]'
 
-                start = 0
-                end = 0
+                start_time = 0
+                end_time = 0
 
                 duration = ''
 
@@ -1477,7 +1643,7 @@ def live_channel(exlink, extitle):
             ext = localized(30027)
             context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(title))]
 
-            add_item(label=name, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start, end=end, folder=False, playable=True, info_labels={'title': title, 'originaltitle': org_title, 'plot': plot, 'plotoutline': plot, 'aired': aired, 'dateadded': date, 'duration': duration, 'genre': genre, 'country': lang}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
+            add_item(label=name, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': title, 'originaltitle': org_title, 'plot': plot, 'plotoutline': plot, 'aired': aired, 'dateadded': date, 'duration': duration, 'genre': genre, 'country': lang}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
 
     xbmcplugin.setContent(addon_handle, 'sets')
     xbmcplugin.endOfDirectory(addon_handle)
@@ -1628,6 +1794,10 @@ def get_stream(exlink, catchup_type):
     return None, None
 
 def sports_page():
+    login = check_login()
+    if not login:
+        login_data(reconnect=False)
+
     add_item(label=localized(30049), url='', mode='sports_table_genre', icon=icon, fanart=fanart, folder=True, playable=False)
     add_item(label=localized(30050), url='', mode='sports_corner_genre', icon=icon, fanart=fanart, folder=True, playable=False)
 
@@ -1915,6 +2085,10 @@ def sports_corner(genre_id):
         return
 
 def kids_genre():
+    login = check_login()
+    if not login:
+        login_data(reconnect=False)
+
     beartoken = addon.getSetting('teliaplay_beartoken')
     tv_client_boot_id = addon.getSetting('teliaplay_tv_client_boot_id')
 
@@ -2128,6 +2302,7 @@ def home():
 
     if login and not childmode:
         add_item(label=localized(30009).format(profile_name), url='', mode='logged', icon=profile_avatar, fanart=fanart, folder=False, playable=False)
+        add_item(label=localized(30067), url='', mode='now_playing', icon=live_icon, fanart=fanart, folder=True, playable=False)
         add_item(label=localized(30010), url='', mode='channels', icon=tv_icon, fanart=fanart, folder=True, playable=False)
         add_item(label=localized(30011), url='', mode='video_on_demand', icon=vod_icon, fanart=fanart, folder=True, playable=False)
         add_item(label=localized(30039), url='', mode='sports_page', icon=sport_icon, fanart=fanart, folder=True, playable=False)
@@ -2272,6 +2447,9 @@ def router(param):
 
         elif mode == 'programs':
             live_channel(exlink, extitle)
+
+        elif mode == 'now_playing':
+            now_playing()
 
         elif mode == 'channels':
             live_channels()

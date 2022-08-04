@@ -283,3 +283,7 @@ msgstr "Allt innehåll"
 msgctxt "#30066"
 msgid "Popular"
 msgstr "Populärt"
+
+msgctxt "#30067"
+msgid "Live TV"
+msgstr ""
