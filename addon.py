@@ -59,11 +59,11 @@ from datetime import *
 import requests
 from requests.exceptions import HTTPError, ConnectionError, Timeout, RequestException
 
-import re
-import time
-import six
-import uuid
 import iso8601
+import re
+import six
+import time
+import uuid
 
 from ext import c_ext_info
 
@@ -72,12 +72,12 @@ addon_handle = int(sys.argv[1])
 params = dict(urlparse.parse_qsl(sys.argv[2][1:]))
 addon = xbmcaddon.Addon(id='plugin.video.teliaplay')
 
-exlink = params.get('url', None)
-extitle = params.get('label', None)
-exid = params.get('media_id', None)
-excatchup = params.get('catchup', None)
-exstart = params.get('start', None)
-exend = params.get('end', None)
+exlink = params.get('url', '')
+extitle = params.get('label', '')
+exid = params.get('media_id', '')
+excatchup = params.get('catchup', '')
+exstart = params.get('start', '')
+exend = params.get('end', '')
 
 profile_path = xbmcvfs.translatePath(addon.getAddonInfo('profile'))
 
@@ -141,10 +141,16 @@ class proxydt(datetime):
 proxydt = proxydt
 
 def build_url(query):
+    query = {k: v for k, v in query.items() if v}
     return base_url + '?' + urlencode(query)
 
-def add_item(label, url, mode, folder, playable, media_id=None, catchup=None, start=None, end=None, thumb=None, poster=None, banner=None, clearlogo=None, icon=None, fanart=None, plot=None, context_menu=None, item_count=None, info_labels=False, page=0):
-    list_item = xbmcgui.ListItem(label=label)
+def add_item(label, url, mode, folder, playable, media_id='', catchup='', start='', end='', plot='', thumb=None, poster=None, banner=None, clearlogo=None, icon=None, fanart=None, context_menu=None, item_count=None, info_labels=False, page=0):
+    if not info_labels:
+        info_labels = {'title': label}
+
+    title = info_labels.get('title')
+
+    list_item = xbmcgui.ListItem(label=title)
 
     if playable:
         list_item.setProperty('IsPlayable', 'true')
@@ -156,9 +162,6 @@ def add_item(label, url, mode, folder, playable, media_id=None, catchup=None, st
     if context_menu:
         list_item.addContextMenuItems(context_menu, replaceItems=True)
 
-    if not info_labels:
-        info_labels = {'title': label}
-
     list_item.setInfo(type='Video', infoLabels=info_labels)
 
     thumb = thumb if thumb else icon
@@ -167,11 +170,14 @@ def add_item(label, url, mode, folder, playable, media_id=None, catchup=None, st
     clearlogo = clearlogo if clearlogo else icon
     fanart = fanart if fanart else icon
 
+    if not icon:
+        icon = ''
+
     list_item.setArt({'thumb': thumb, 'poster': poster, 'banner': banner, 'fanart': fanart, 'clearlogo': clearlogo})
 
     xbmcplugin.addDirectoryItem(
         handle=addon_handle,
-        url=build_url({'title': label, 'mode': mode, 'url': url, 'media_id': media_id, 'catchup': catchup, 'start': start, 'end': end, 'page': page, 'plot': plot, 'image': icon}),
+        url=build_url({'title': title, 'mode': mode, 'url': url, 'media_id': media_id, 'catchup': catchup, 'start': start, 'end': end}),
         listitem=list_item,
         isFolder=folder)
 
@@ -769,15 +775,15 @@ def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlo
                 folder = True
                 playable = False
 
-            title = media.get('title')
-            if not title:
-                title = media.get('name')
+            label = media.get('title')
+            if not label:
+                label = media.get('name')
                 if not title:
                     showcase_title = media.get('showcaseTitle')
                     if showcase_title:
-                        title = showcase_title.get('text')
+                        label = showcase_title.get('text')
 
-            label = title
+            title = label
             genre = media.get('genre')
 
             availability = media.get('availability')
@@ -875,7 +881,7 @@ def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlo
 
             if title not in titles:
                 count += 1
-                add_item(label=title, url='vod', mode=mode, media_id=media_id, folder=folder, playable=playable, info_labels={'title': label, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': date, 'dateadded': date, 'duration': duration, 'genre': genre, 'userrating': rating, 'mpaa': age}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
+                add_item(label=label, url='vod', mode=mode, media_id=media_id, folder=folder, playable=playable, info_labels={'title': title, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': date, 'dateadded': date, 'duration': duration, 'genre': genre, 'userrating': rating, 'mpaa': age}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
                 titles.add(title)
 
     xbmcplugin.setContent(addon_handle, 'sets')
@@ -1357,7 +1363,7 @@ def now_playing(thumb=thumb, poster=poster, banner=banner, clearlogo=clearlogo, 
                         ext = localized(30027)
                         context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(title))]
 
-                        add_item(label=label, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': label, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': today, 'dateadded': today, 'duration': duration, 'sortepisode': episode_nr, 'sortseason': season_nr}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
+                        add_item(label=label, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': title, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': today, 'dateadded': today, 'duration': duration, 'sortepisode': episode_nr, 'sortseason': season_nr}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
 
         xbmcplugin.setContent(addon_handle, 'playlists')
         xbmcplugin.endOfDirectory(addon_handle)
@@ -1478,6 +1484,87 @@ def live_channels():
 
     return channel_lst
 
+def catchup_channel(exlink, start):
+    country            = int(addon.getSetting('teliaplay_locale'))
+    beartoken          = addon.getSetting('teliaplay_beartoken')
+    tv_client_boot_id  = addon.getSetting('teliaplay_tv_client_boot_id')
+
+    url = 'https://graphql-telia.t6a.net/'
+
+    headers = {
+        'authorization': 'Bearer ' + beartoken,
+        'tv-client-name': 'androidmob',
+        'tv-client-version': '4.7.0',
+        'tv-client-boot-id': tv_client_boot_id,
+        'x-country': ca[country],
+        'content-type': 'application/json',
+        'accept-encoding': 'gzip',
+        'user-agent': 'okhttp/4.9.3',
+    }
+
+    json = {
+        'operationName': 'GetChannel',
+
+        'variables': {
+            'channelId': '{0}'.format(str(exlink)),
+            'programLimit': 1,
+            'timestamp': int(start) * 1000
+        },
+
+        'query': 'query GetChannel($channelId: String!, $timestamp: Timestamp, $programLimit: Int) {\n  channel(id: $channelId) {\n    ...ChannelItem\n    __typename\n  }\n}\n\nfragment ChannelItem on Channel {\n  id\n  name\n  recordAndWatch\n  playback {\n    play {\n      playbackSpec {\n        ...PlaybackSpec\n        __typename\n      }\n      __typename\n    }\n    buy {\n      ...GraphQLChannelPlaybackBuyFragment\n      __typename\n    }\n    __typename\n  }\n  icons {\n    light {\n      sourceNonEncoded\n      __typename\n    }\n    dark {\n      sourceNonEncoded\n      __typename\n    }\n    __typename\n  }\n  programs(timestamp: $timestamp, limit: $programLimit) {\n    programItems {\n      ...ProgramItem\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment PlaybackSpec on PlaybackSpec {\n  accessControl\n  videoId\n  videoIdType\n  watchMode\n  __typename\n}\n\nfragment GraphQLChannelPlaybackBuyFragment on ChannelPlaybackBuy {\n  subscriptions {\n    item {\n      ...GraphQLSubscriptionProductStandardFragment\n      ...GraphQLSubscriptionProductIAPFragment\n      ...GraphQLSubscriptionProductTVEFragment\n      ...GraphQLSubscriptionProductDualEntry\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment GraphQLSubscriptionProductStandardFragment on SubscriptionProductStandard {\n  id\n  name\n  uniqueSellingPoints {\n    ...GraphQLSubscriptionProductUniqueSellingPoint\n    __typename\n  }\n  gqlPrice: price {\n    readable\n    __typename\n  }\n  __typename\n}\n\nfragment GraphQLSubscriptionProductUniqueSellingPoint on SubscriptionProductUniqueSellingPoint {\n  sellingPoint\n  __typename\n}\n\nfragment GraphQLSubscriptionProductIAPFragment on SubscriptionProductIAP {\n  id\n  name\n  iTunesConnectId\n  uniqueSellingPoints {\n    ...GraphQLSubscriptionProductUniqueSellingPoint\n    __typename\n  }\n  __typename\n}\n\nfragment GraphQLSubscriptionProductTVEFragment on SubscriptionProductTVE {\n  id\n  name\n  __typename\n}\n\nfragment GraphQLSubscriptionProductDualEntry on SubscriptionProductDualEntry {\n  id\n  name\n  __typename\n}\n\nfragment ProgramItem on Program {\n  live\n  id\n  startTime {\n    timestamp\n    isoString\n    __typename\n  }\n  endTime {\n    timestamp\n    isoString\n    __typename\n  }\n  title\n  media {\n    ... on Movie {\n      ...MovieProgram\n      __typename\n    }\n    ... on Episode {\n      ...EpisodeProgram\n      __typename\n    }\n    ... on SportEvent {\n      ...SportProgram\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment MovieProgram on Movie {\n  id\n genre\n images {\n    showcard16x9 {\n      sourceNonEncoded\n      __typename\n    }\n    showcard2x3 {\n      sourceNonEncoded\n      __typename\n    }\n    __typename\n  }\n  mediaType\n  title\n  availableNow\n  availability {\n    from {\n      timestamp\n      __typename\n    }\n    to {\n      timestamp\n      __typename\n    }\n    __typename\n  }\n  descriptionLong\n  playback {\n    ...PlaybackItem\n    buy {\n      ...GraphQLPlaybackBuyFragment\n      ...BuyItem\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment PlaybackItem on Playback {\n  play {\n    linear {\n      ...Linear\n      __typename\n    }\n    subscription {\n      item {\n        validFrom {\n          timestamp\n          __typename\n        }\n        validTo {\n          timestamp\n          __typename\n        }\n        playbackSpec {\n          ...PlaybackSpec\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    npvr {\n      item {\n        validFrom {\n          timestamp\n          __typename\n        }\n        validTo {\n          timestamp\n          __typename\n        }\n        playbackSpec {\n          ...PlaybackSpec\n          __typename\n        }\n        __typename\n      }\n      live {\n        playbackSpec {\n          ...PlaybackSpec\n          __typename\n        }\n        __typename\n      }\n      startover {\n        playbackSpec {\n          ...PlaybackSpec\n          __typename\n        }\n        __typename\n      }\n      npvrInfo {\n        series {\n          active\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment Linear on PlaybackPlayLinear {\n  item {\n    isLive\n    startover {\n      playbackSpec {\n        ...PlaybackSpec\n        __typename\n      }\n      __typename\n    }\n    playbackSpec {\n      ...PlaybackSpec\n      __typename\n    }\n    startTime {\n      timestamp\n      readableDistance(type: FUZZY)\n      __typename\n    }\n    endTime {\n      timestamp\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment GraphQLPlaybackBuyFragment on PlaybackBuy {\n  subscriptions {\n    item {\n      ...GraphQLSubscriptionProductStandardFragment\n      ...GraphQLSubscriptionProductIAPFragment\n      ...GraphQLSubscriptionProductTVEFragment\n      ...GraphQLSubscriptionProductDualEntry\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment BuyItem on PlaybackBuy {\n  subscription {\n    item {\n      validFrom {\n        timestamp\n        __typename\n      }\n      validTo {\n        timestamp\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  npvr {\n    item {\n      validFrom {\n        timestamp\n        __typename\n      }\n      validTo {\n        timestamp\n        __typename\n      }\n      playbackSpec {\n        ...PlaybackSpec\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n\nfragment EpisodeProgram on Episode {\n  id\n  genre\n images {\n    showcard16x9 {\n      sourceNonEncoded\n      __typename\n    }\n    showcard2x3 {\n      sourceNonEncoded\n      __typename\n    }\n    __typename\n  }\n  availableNow\n  availability {\n    from {\n      timestamp\n      __typename\n    }\n    to {\n      timestamp\n      __typename\n    }\n    __typename\n  }\n  title\n  descriptionLong\n  series {\n    id\n    title\n    isRecordable\n    userData {\n      npvrInfo {\n        active\n        episodes {\n          ongoing\n          recorded\n          scheduled\n          __typename\n        }\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  playback {\n    ...PlaybackItem\n    buy {\n      ...GraphQLPlaybackBuyFragment\n      ...BuyItem\n      __typename\n    }\n    __typename\n  }\n  episodeNumber {\n    readable\n    __typename\n  }\n  seasonNumber {\n    readable\n    __typename\n  }\n  __typename\n}\n\nfragment SportProgram on SportEvent {\n  id\n  title\n  availableNow\n  availability {\n    from {\n      timestamp\n      __typename\n    }\n    to {\n      timestamp\n      __typename\n    }\n    __typename\n  }\n  playback {\n    ...PlaybackItem\n    buy {\n      ...GraphQLPlaybackBuyFragment\n      ...BuyItem\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n'
+    }
+
+    response = send_req(url, post=True, json=json, headers=headers)
+    if response:
+        j_response = response.json()
+
+    if j_response.get('errors', ''):
+        return None, None
+
+    program_items = j_response['data']['channel']['programs']['programItems']
+    if not program_items:
+        xbmcgui.Dialog().notification(localized(30012), localized(30048))
+        return
+
+    programs = dict()
+
+    for program in program_items:
+        extitle = program.get('title')
+        exstart = program.get('startTime')
+        if exstart:
+            exstart_ts = exstart.get('timestamp') // 1000
+
+        exend = program.get('endTime')
+        if exend:
+            exend_ts = exend.get('timestamp') // 1000
+
+        excatchup = 'LIVE'
+        exid = ''
+
+        media = program.get('media')
+        if media:
+            exid = media.get('id')
+            playback = media.get('playback')
+            if playback:
+                play = playback.get('play')
+                if play:
+                    subscription = play.get('subscription')
+                    if subscription:
+                        for item in subscription:
+                            if item:
+                                items = item.get('item')
+                                if items:
+                                    playback_spec = items.get('playbackSpec')
+                                    if playback_spec:
+                                        excatchup = playback_spec.get('watchMode')
+
+        programs.update({'exlink':exlink, 'extitle': extitle, 'exid': exid, 'excatchup': excatchup, 'exstart': exstart_ts, 'exend': exend_ts})
+
+    if programs:
+        return programs
+    else:
+        return None
+
 def live_channel(exlink, extitle):
     country            = int(addon.getSetting('teliaplay_locale'))
     beartoken          = addon.getSetting('teliaplay_beartoken')
@@ -1534,7 +1621,7 @@ def live_channel(exlink, extitle):
         for program in program_items:
             count += 1
 
-            title = program['title']
+            title = program.get('title')
             org_title = title
 
             now = int(time.time())
@@ -1578,11 +1665,11 @@ def live_channel(exlink, extitle):
                 else:
                     name_ = title + '[B][COLOR limegreen] ● [/COLOR][/B]'
 
-                name = name_ + '[COLOR grey]({0})[/COLOR]'.format(date)
+                label = name_ + '[COLOR grey]({0})[/COLOR]'.format(date)
 
             except:
                 name_ = title + '[B][COLOR violet] ● [/COLOR][/B]'
-                name = name_ + '[COLOR grey](00:00 - 23:59)[/COLOR]'
+                label = name_ + '[COLOR grey](00:00 - 23:59)[/COLOR]'
 
                 start_time = 0
                 end_time = 0
@@ -1591,8 +1678,6 @@ def live_channel(exlink, extitle):
 
                 aired = ''
                 date = ''
-
-            catchup = 'LIVE'
 
             media = program.get('media')
 
@@ -1605,7 +1690,7 @@ def live_channel(exlink, extitle):
             if audio_lang:
                 lang = audio_lang.get('name')
 
-            catchup = ''
+            catchup = 'LIVE'
             playback = media.get('playback')
             if playback:
                 play = playback.get('play')
@@ -1643,7 +1728,7 @@ def live_channel(exlink, extitle):
             ext = localized(30027)
             context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(title))]
 
-            add_item(label=name, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': title, 'originaltitle': org_title, 'plot': plot, 'plotoutline': plot, 'aired': aired, 'dateadded': date, 'duration': duration, 'genre': genre, 'country': lang}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
+            add_item(label=label, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': title, 'originaltitle': org_title, 'plot': plot, 'plotoutline': plot, 'aired': aired, 'dateadded': date, 'duration': duration, 'genre': genre, 'country': lang}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
 
     xbmcplugin.setContent(addon_handle, 'sets')
     xbmcplugin.endOfDirectory(addon_handle)
@@ -2429,7 +2514,7 @@ def build_m3u():
         title = item[1] + ' ' + ca[country]
         icon = item[2]
 
-        data += '\n#EXTINF:-1 tvg-id="{id}" tvg-name="{title}" tvg-logo="{icon}" group-title="Telia", {title}\n{url}'.format(id=tvg_id, title=title, url=url, icon=icon)
+        data += '\n#EXTINF:-1 tvg-id="{id}" tvg-name="{title}" tvg-logo="{icon}" catchup="default" catchup-days="7" group-title="Telia", {title}\n{url}'.format(id=tvg_id, title=title, url=url, icon=icon)
 
     with open(path + 'teliaplay_iptv.m3u', 'w+', encoding='utf-8') as f:
         f.write(data)
@@ -2441,9 +2526,19 @@ def router(param):
     args = dict(urlparse.parse_qsl(param))
     if args:
         mode = args.get('mode', None)
-
         if mode == 'play':
-            play(exlink, extitle, exid, excatchup, exstart, exend)
+            utc = args.get('utc')
+            if utc:
+                start = utc
+                url = args.get('url')
+                if url:
+                    prog = catchup_channel(url, start)
+                    if not prog:
+                        return
+
+                    play(prog['exlink'], prog['extitle'], prog['exid'], prog['excatchup'], prog['exstart'], prog['exend'])
+            else:
+                play(exlink, extitle, exid, excatchup, exstart, exend)
 
         elif mode == 'programs':
             live_channel(exlink, extitle)
