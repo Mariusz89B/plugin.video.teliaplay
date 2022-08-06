@@ -73,7 +73,7 @@ params = dict(urlparse.parse_qsl(sys.argv[2][1:]))
 addon = xbmcaddon.Addon(id='plugin.video.teliaplay')
 
 exlink = params.get('url', '')
-extitle = params.get('label', '')
+extitle = params.get('title', '')
 exid = params.get('media_id', '')
 excatchup = params.get('catchup', '')
 exstart = params.get('start', '')
@@ -141,7 +141,7 @@ class proxydt(datetime):
 proxydt = proxydt
 
 def build_url(query):
-    query = {k: v for k, v in query.items() if v}
+    query = {k: v for k, v in query.items() if v != ''}
     return base_url + '?' + urlencode(query)
 
 def add_item(label, url, mode, folder, playable, media_id='', catchup='', start='', end='', plot='', thumb=None, poster=None, banner=None, clearlogo=None, icon=None, fanart=None, context_menu=None, item_count=None, info_labels=False, page=0):
@@ -777,14 +777,15 @@ def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlo
 
             label = media.get('title')
             if not label:
-                label = media.get('name')
-                if not title:
+                name = media.get('name')
+                if not name:
                     showcase_title = media.get('showcaseTitle')
                     if showcase_title:
                         label = showcase_title.get('text')
 
-            title = label
             genre = media.get('genre')
+
+            title = label
 
             availability = media.get('availability')
             if availability:
@@ -800,7 +801,7 @@ def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlo
                             da_start = dt_start.strftime('%H:%M')
 
                             if da_start != '00:00':
-                                label = title + ' [COLOR grey]({0})[/COLOR]'.format(da_start)
+                                title = label + ' [COLOR grey]({0})[/COLOR]'.format(da_start)
 
             outline = media.get('description')
             plot = media.get('descriptionLong')
@@ -998,7 +999,7 @@ def vod_episodes(season, season_id):
             season_num = item['seasonNumber']['number']
 
             if int(season) == int(season_num):
-                title = item.get('title')
+                label = item.get('title')
                 media_id = item.get('id')
 
                 episode_raw = item.get('episodeNumber')
@@ -1019,7 +1020,7 @@ def vod_episodes(season, season_id):
                 else:
                     season_nr = ''
 
-                label = episode_read
+                title = episode_read
 
                 plot = item.get('descriptionLong')
                 directors = item.get('directors')
@@ -1063,7 +1064,7 @@ def vod_episodes(season, season_id):
                             icon = unquote(src)
 
                 ext = localized(30027)
-                context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(title))]
+                context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(label))]
 
                 add_item(label=label, url='vod', mode='play', media_id=media_id, folder=False, playable=True, info_labels={'title': title, 'originaltitle': title, 'plot': plot, 'genre': genre, 'director': directors, 'cast': actors_lst, 'sortepisode': episode_nr, 'sortseason': season_nr, 'mpaa': age, 'year': date}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
 
@@ -1232,6 +1233,10 @@ def search(query):
             get_items(data)
 
 def now_playing(thumb=thumb, poster=poster, banner=banner, clearlogo=clearlogo, icon=icon, fanart=fanart):
+    login = check_login()
+    if not login:
+        login_data(reconnect=False)
+
     country            = int(addon.getSetting('teliaplay_locale'))
     beartoken          = addon.getSetting('teliaplay_beartoken')
     tv_client_boot_id  = addon.getSetting('teliaplay_tv_client_boot_id')
@@ -1309,7 +1314,7 @@ def now_playing(thumb=thumb, poster=poster, banner=banner, clearlogo=clearlogo, 
                     else:
                         st_end = None
 
-                    title = program.get('title')
+                    label = program.get('title')
 
                     media = program.get('media')
                     if media:
@@ -1338,7 +1343,7 @@ def now_playing(thumb=thumb, poster=poster, banner=banner, clearlogo=clearlogo, 
                             date = ''
                             duration = ''
 
-                        label = title + '[B][COLOR violet] ● [/COLOR][/B]' + '[COLOR grey]({0})[/COLOR]'.format(date)
+                        title = label + '[B][COLOR violet] ● [/COLOR][/B]' + '[COLOR grey]({0})[/COLOR]'.format(date)
 
                         episode_raw = media.get('episodeNumber')
                         if episode_raw:
@@ -1361,7 +1366,7 @@ def now_playing(thumb=thumb, poster=poster, banner=banner, clearlogo=clearlogo, 
                         catchup = 'LIVE'
 
                         ext = localized(30027)
-                        context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(title))]
+                        context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(label))]
 
                         add_item(label=label, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': title, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': today, 'dateadded': today, 'duration': duration, 'sortepisode': episode_nr, 'sortseason': season_nr}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
 
@@ -1621,8 +1626,8 @@ def live_channel(exlink, extitle):
         for program in program_items:
             count += 1
 
-            title = program.get('title')
-            org_title = title
+            label = program.get('title')
+            org_title = label
 
             now = int(time.time())
 
@@ -1653,23 +1658,23 @@ def live_channel(exlink, extitle):
                 aired = da_start
                 date = st_start + ' - ' + st_end
 
-                if len(title) > 50:
-                    title = title[:50]
+                if len(label) > 50:
+                    label = label[:50]
 
                 if int(now) >= int(start_time) and int(now) <= int(end_time):
-                    name_ = title + '[B][COLOR violet] ● [/COLOR][/B]'
+                    name_ = label + '[B][COLOR violet] ● [/COLOR][/B]'
 
                 elif int(end_time) >= int(now):
-                    name_ = '[COLOR grey]{0}[/COLOR] [B][/B]'.format(title)
+                    name_ = '[COLOR grey]{0}[/COLOR] [B][/B]'.format(label)
 
                 else:
-                    name_ = title + '[B][COLOR limegreen] ● [/COLOR][/B]'
+                    name_ = label + '[B][COLOR limegreen] ● [/COLOR][/B]'
 
-                label = name_ + '[COLOR grey]({0})[/COLOR]'.format(date)
+                title = name_ + '[COLOR grey]({0})[/COLOR]'.format(date)
 
             except:
-                name_ = title + '[B][COLOR violet] ● [/COLOR][/B]'
-                label = name_ + '[COLOR grey](00:00 - 23:59)[/COLOR]'
+                name_ = label + '[B][COLOR violet] ● [/COLOR][/B]'
+                title = name_ + '[COLOR grey](00:00 - 23:59)[/COLOR]'
 
                 start_time = 0
                 end_time = 0
@@ -1726,7 +1731,7 @@ def live_channel(exlink, extitle):
                         icon = unquote(src)
 
             ext = localized(30027)
-            context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(title))]
+            context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(label))]
 
             add_item(label=label, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': title, 'originaltitle': org_title, 'plot': plot, 'plotoutline': plot, 'aired': aired, 'dateadded': date, 'duration': duration, 'genre': genre, 'country': lang}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
 
@@ -2526,6 +2531,7 @@ def router(param):
     args = dict(urlparse.parse_qsl(param))
     if args:
         mode = args.get('mode', None)
+
         if mode == 'play':
             utc = args.get('utc')
             if utc:
