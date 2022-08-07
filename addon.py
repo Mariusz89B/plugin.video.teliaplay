@@ -78,6 +78,7 @@ exid = params.get('media_id', '')
 excatchup = params.get('catchup', '')
 exstart = params.get('start', '')
 exend = params.get('end', '')
+exlabels = params.get('info_labels', '')
 
 profile_path = xbmcvfs.translatePath(addon.getAddonInfo('profile'))
 
@@ -159,6 +160,9 @@ def add_item(label, url, mode, folder, playable, media_id='', catchup='', start=
             info = x_localized(19047)
             context_menu.insert(0, (info, 'Action(Info)'))
 
+    else:
+        list_item.setProperty('IsPlayable', 'false')
+
     if context_menu:
         list_item.addContextMenuItems(context_menu, replaceItems=True)
 
@@ -177,7 +181,7 @@ def add_item(label, url, mode, folder, playable, media_id='', catchup='', start=
 
     xbmcplugin.addDirectoryItem(
         handle=addon_handle,
-        url=build_url({'title': title, 'mode': mode, 'url': url, 'media_id': media_id, 'catchup': catchup, 'start': start, 'end': end}),
+        url=build_url({'title': title, 'mode': mode, 'url': url, 'media_id': media_id, 'catchup': catchup, 'start': start, 'end': end, 'info_labels': info_labels}),
         listitem=list_item,
         isFolder=folder)
 
@@ -882,7 +886,7 @@ def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlo
 
             if title not in titles:
                 count += 1
-                add_item(label=label, url='vod', mode=mode, media_id=media_id, folder=folder, playable=playable, info_labels={'title': title, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': date, 'dateadded': date, 'duration': duration, 'genre': genre, 'userrating': rating, 'mpaa': age}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
+                add_item(label=label, url='vod', mode=mode, media_id=media_id, folder=folder, playable=playable, info_labels={'title': title, 'sorttitle': title, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': date, 'dateadded': date, 'duration': duration, 'genre': genre, 'userrating': rating, 'mpaa': age}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
                 titles.add(title)
 
     xbmcplugin.setContent(addon_handle, 'sets')
@@ -1066,7 +1070,7 @@ def vod_episodes(season, season_id):
                 ext = localized(30027)
                 context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(label))]
 
-                add_item(label=label, url='vod', mode='play', media_id=media_id, folder=False, playable=True, info_labels={'title': title, 'originaltitle': title, 'plot': plot, 'genre': genre, 'director': directors, 'cast': actors_lst, 'sortepisode': episode_nr, 'sortseason': season_nr, 'mpaa': age, 'year': date}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
+                add_item(label=label, url='vod', mode='play', media_id=media_id, folder=False, playable=True, info_labels={'title': title, 'sorttitle': title, 'originaltitle': title, 'plot': plot, 'genre': genre, 'director': directors, 'cast': actors_lst, 'sortepisode': episode_nr, 'sortseason': season_nr, 'mpaa': age, 'year': date}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
 
     xbmcplugin.setContent(addon_handle, 'sets')
     xbmcplugin.endOfDirectory(addon_handle)
@@ -1368,7 +1372,7 @@ def now_playing(thumb=thumb, poster=poster, banner=banner, clearlogo=clearlogo, 
                         ext = localized(30027)
                         context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(label))]
 
-                        add_item(label=label, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': title, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': today, 'dateadded': today, 'duration': duration, 'sortepisode': episode_nr, 'sortseason': season_nr}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
+                        add_item(label=label, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': title, 'sorttitle': title, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': today, 'dateadded': today, 'duration': duration, 'sortepisode': episode_nr, 'sortseason': season_nr}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
 
         xbmcplugin.setContent(addon_handle, 'playlists')
         xbmcplugin.endOfDirectory(addon_handle)
@@ -1480,7 +1484,7 @@ def live_channels():
                     icon = unquote(img)
 
                 channel_lst.append((exlink, name, icon))
-                add_item(label=name, url=exlink, mode='programs', icon=icon, folder=True, playable=False, info_labels={'title':name, 'plot':name}, fanart=fanart, item_count=count)
+                add_item(label=name, url=exlink, mode='programs', icon=icon, folder=True, playable=False, info_labels={'title':name, 'sorttitle': title, 'plot':name}, fanart=fanart, item_count=count)
 
         xbmcplugin.endOfDirectory(addon_handle)
 
@@ -1733,7 +1737,7 @@ def live_channel(exlink, extitle):
             ext = localized(30027)
             context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(label))]
 
-            add_item(label=label, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': title, 'originaltitle': org_title, 'plot': plot, 'plotoutline': plot, 'aired': aired, 'dateadded': date, 'duration': duration, 'genre': genre, 'country': lang}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
+            add_item(label=label, url=exlink, mode='play', media_id=media_id, catchup=catchup, start=start_time, end=end_time, folder=False, playable=True, info_labels={'title': title, 'sorttitle': title, 'originaltitle': org_title, 'plot': plot, 'plotoutline': plot, 'aired': aired, 'dateadded': date, 'duration': duration, 'genre': genre, 'country': lang}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
 
     xbmcplugin.setContent(addon_handle, 'sets')
     xbmcplugin.endOfDirectory(addon_handle)
@@ -2344,24 +2348,33 @@ def play(exlink, title, media_id, catchup_type, start, end):
     PROTOCOL = 'mpd'
     DRM = 'com.widevine.alpha'
 
+    i = {}
+
+    if exlabels:
+        i = eval(exlabels)
+
+    title = i.get('title')
+    plot = i.get('plot')
+    duration = i.get('duration')
+    aired = i.get('aired')
+
     import inputstreamhelper
     is_helper = inputstreamhelper.Helper(PROTOCOL, drm=DRM)
     if is_helper.check_inputstream():
         play_item = xbmcgui.ListItem(path=strm_url)
-        play_item.setInfo( type="Video", infoLabels={ "Title": title, } )
+        play_item.setInfo('Video', infoLabels={'title': title, 'plot':plot, 'duration': duration, 'aired': aired})
         play_item.setContentLookup(False)
         play_item.setProperty('inputstream', is_helper.inputstream_addon)
         play_item.setMimeType('application/xml+dash')
         play_item.setProperty('inputstream.adaptive.license_type', DRM)
         play_item.setProperty('inputstream.adaptive.license_key', license_url)
-        play_item.setProperty('inputstream.adaptive.stream_headers', 'Referer: https://www.teliaplay.se/&User-Agent='+quote(UA))
+        play_item.setProperty('inputstream.adaptive.stream_headers', 'Referer: https://www.teliaplay.se/&User-Agent=' + quote(UA))
         play_item.setProperty('inputstream.adaptive.manifest_type', 'mpd')
         play_item.setProperty('IsPlayable', 'true')
         if catchup_type != 'LIVE':
             play_item.setProperty('inputstream.adaptive.play_timeshift_buffer', 'true')
 
         xbmcplugin.setResolvedUrl(addon_handle, True, listitem=play_item)
-
 
 def pincode():
     j_response, pin_code = profile_data()
