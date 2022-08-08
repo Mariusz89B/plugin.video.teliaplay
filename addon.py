@@ -1484,7 +1484,7 @@ def live_channels():
                     icon = unquote(img)
 
                 channel_lst.append((exlink, name, icon))
-                add_item(label=name, url=exlink, mode='programs', icon=icon, folder=True, playable=False, info_labels={'title':name, 'sorttitle': title, 'plot':name}, fanart=fanart, item_count=count)
+                add_item(label=name, url=exlink, mode='programs', icon=icon, folder=True, playable=False, info_labels={'title':name, 'plot':name}, fanart=fanart, item_count=count)
 
         xbmcplugin.endOfDirectory(addon_handle)
 
@@ -1493,7 +1493,7 @@ def live_channels():
 
     return channel_lst
 
-def catchup_channel(exlink, start):
+def get_programme(exlink, start):
     country            = int(addon.getSetting('teliaplay_locale'))
     beartoken          = addon.getSetting('teliaplay_beartoken')
     tv_client_boot_id  = addon.getSetting('teliaplay_tv_client_boot_id')
@@ -1567,7 +1567,7 @@ def catchup_channel(exlink, start):
                                     if playback_spec:
                                         excatchup = playback_spec.get('watchMode')
 
-        programs.update({'exlink':exlink, 'extitle': extitle, 'exid': exid, 'excatchup': excatchup, 'exstart': exstart_ts, 'exend': exend_ts})
+        programs.update({'exlink': exlink, 'extitle': extitle, 'exid': exid, 'excatchup': excatchup, 'exstart': exstart_ts, 'exend': exend_ts})
 
     if programs:
         return programs
@@ -2348,21 +2348,11 @@ def play(exlink, title, media_id, catchup_type, start, end):
     PROTOCOL = 'mpd'
     DRM = 'com.widevine.alpha'
 
-    i = {}
-
-    if exlabels:
-        i = eval(exlabels)
-
-    title = i.get('title')
-    plot = i.get('plot')
-    duration = i.get('duration')
-    aired = i.get('aired')
-
     import inputstreamhelper
     is_helper = inputstreamhelper.Helper(PROTOCOL, drm=DRM)
     if is_helper.check_inputstream():
         play_item = xbmcgui.ListItem(path=strm_url)
-        play_item.setInfo('Video', infoLabels={'title': title, 'plot':plot, 'duration': duration, 'aired': aired})
+        play_item.setInfo('Video', infoLabels={'title': title})
         play_item.setContentLookup(False)
         play_item.setProperty('inputstream', is_helper.inputstream_addon)
         play_item.setMimeType('application/xml+dash')
@@ -2526,7 +2516,7 @@ def build_m3u():
     items = live_channels()
     for item in items:
         cid = item[0]
-        url = 'plugin://plugin.video.teliaplay/?title=&mode=play&url={cid}&catchup=LIVE&start=0&end=0'.format(cid=cid)
+        url = 'plugin://plugin.video.teliaplay/?title=&mode=play&url={cid}'.format(cid=cid)
 
         tvg_id = item[1].lower().replace(' ', '_') + '.' + cc[country]
         title = item[1] + ' ' + ca[country]
@@ -2551,13 +2541,25 @@ def router(param):
                 start = utc
                 url = args.get('url')
                 if url:
-                    prog = catchup_channel(url, start)
+                    prog = get_programme(url, start)
                     if not prog:
                         return
 
                     play(prog['exlink'], prog['extitle'], prog['exid'], prog['excatchup'], prog['exstart'], prog['exend'])
             else:
-                play(exlink, extitle, exid, excatchup, exstart, exend)
+                start = args.get('start')
+                url = args.get('url')
+
+                if not start:
+                    catchup = 'LIVE'
+
+                    start = 0
+                    end = 0
+
+                    play(exlink, extitle, exid, catchup, start, end)
+
+                else:
+                    play(exlink, extitle, exid, excatchup, exstart, exend)
 
         elif mode == 'programs':
             live_channel(exlink, extitle)
