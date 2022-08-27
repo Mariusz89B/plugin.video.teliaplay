@@ -739,7 +739,7 @@ def vod(genre_id):
             xbmcgui.Dialog().notification(localized(30012), localized(30048))
             return
 
-def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlogo, icon=icon, fanart=fanart):
+def get_items(data, mode=None, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlogo, icon=icon, fanart=fanart):
     titles = set()
     count = 0
 
@@ -759,12 +759,14 @@ def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlo
                     media_id = content.get('id')
                     typename = content.get('__typename')
 
-            mode = 'play'
-            folder = False
-            playable = True
+            type_ = media.get('type')
+
+            url = 'vod'
 
             if typename == 'Movie':
                 mode = 'play'
+                folder = False
+                playable = True
 
             elif typename == 'Series':
                 mode = 'seasons'
@@ -773,16 +775,27 @@ def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlo
 
             elif typename == 'SportEvent':
                 mode = 'play'
+                folder = False
+                playable = True
 
             elif typename == 'Store':
                 mode = 'vod_store'
                 folder = True
                 playable = False
 
+            else:
+                folder = True
+                playable = False
+
+                if not mode:
+                    mode = 'play'
+                    folder = False
+                    playable = True
+
             label = media.get('title')
             if not label:
-                name = media.get('name')
-                if not name:
+                label = media.get('name')
+                if not label:
                     showcase_title = media.get('showcaseTitle')
                     if showcase_title:
                         label = showcase_title.get('text')
@@ -802,7 +815,10 @@ def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlo
                             start_time = timestamp // 1000
 
                             dt_start = datetime.fromtimestamp(start_time)
-                            da_start = dt_start.strftime('%H:%M')
+                            try:
+                                da_start = dt_start.strftime('%A %#d/%#m %H:%M')
+                            except:
+                                da_start = dt_start.strftime('%A %-d/%-m %H:%M')
 
                             if da_start != '00:00':
                                 title = label + ' [COLOR grey]({0})[/COLOR]'.format(da_start)
@@ -857,6 +873,14 @@ def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlo
 
             images = media.get('images')
             if images:
+                card_1x1 = images.get('icon1x1') if images.get('icon1x1') else images.get('icon1x1')
+                if card_1x1:
+                    src = card_1x1.get('sourceNonEncoded')
+                    if not src:
+                        src = card_1x1.get('source')
+                    if src:
+                        poster = unquote(src)
+
                 card_2x3 = images.get('showcard2x3') if images.get('showcard2x3') else images.get('showcase2x3')
                 if card_2x3:
                     src = card_2x3.get('sourceNonEncoded')
@@ -886,7 +910,7 @@ def get_items(data, thumb=thumb, poster=poster, banner=banner, clearlogo=clearlo
 
             if title not in titles:
                 count += 1
-                add_item(label=label, url='vod', mode=mode, media_id=media_id, folder=folder, playable=playable, info_labels={'title': title, 'sorttitle': title, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': date, 'dateadded': date, 'duration': duration, 'genre': genre, 'userrating': rating, 'mpaa': age}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
+                add_item(label=label, url=url, mode=mode, media_id=media_id, folder=folder, playable=playable, info_labels={'title': title, 'sorttitle': title, 'originaltitle': title, 'plot': plot, 'plotoutline': outline, 'aired': date, 'dateadded': date, 'duration': duration, 'genre': genre, 'userrating': rating, 'mpaa': age}, icon=icon, poster=poster, fanart=fanart, context_menu=context_menu, item_count=count)
                 titles.add(title)
 
     xbmcplugin.setContent(addon_handle, 'sets')
@@ -2090,15 +2114,39 @@ def sports_corner_genre():
 
             if items:
                 if item['title'] != '':
-                    genres.append((key, item['title']))
+                    sub = True
+                    if timeline:
+                        content = timeline
+                    elif media:
+                        content = media
+                    else:
+                        content = None
+
+                    if content:
+                        sub = False
+                        for i in content['items']:
+                            media = i.get('media')
+                            if media:
+                                playback = media.get('playback')
+                                if playback:
+                                    play = playback.get('play')
+                                    if play.get('subscription'):
+                                        sub = True
+                    if sub:
+                        genres.append((key, item['title']))
 
         for gen in genres:
             add_item(label=gen[1], url=str(gen[0]), mode='sports_corner', icon=icon, fanart=fanart, folder=True, playable=False)
 
     xbmcplugin.endOfDirectory(addon_handle)
 
-def sports_corner(genre_id):
-    idx = int(genre_id)
+def sports_corner(genre_id, media_id):
+    if not media_id:
+        media_id = 'sports-corner'
+        idx = int(genre_id)
+
+    else:
+        idx = -1
 
     beartoken          = addon.getSetting('teliaplay_beartoken')
     tv_client_boot_id  = addon.getSetting('teliaplay_tv_client_boot_id')
@@ -2127,7 +2175,7 @@ def sports_corner(genre_id):
         'variables': {
             'channelsLimit': 200,
             'mediaContentLimit': 60,
-            'pageId': 'sports-corner',
+            'pageId': media_id,
             'timestamp': timestamp
         },
 
@@ -2171,7 +2219,11 @@ def sports_corner(genre_id):
             xbmcgui.Dialog().notification(localized(30012), localized(30048))
             return
 
-        get_items(items)
+        mode = None
+        if j_response['data']['page']['id'] == 'sports-corner':
+            mode = 'sports_corner'
+
+        get_items(items, mode)
 
     except Exception as ex:
         print('sports Exception: {}'.format(ex))
@@ -2609,7 +2661,7 @@ def router(param):
             sports_corner_genre()
 
         elif mode == 'sports_corner':
-            sports_corner(exlink)
+            sports_corner(exlink, exid)
 
         elif mode == 'kids_genre':
             kids_genre()
