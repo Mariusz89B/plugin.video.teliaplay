@@ -2022,7 +2022,7 @@ def sports(genre_id):
 
         try:
             data = j_response['data']['sportEventList']['content']['sections']
-            items = None
+            items = []
 
             for i in data:
                 for item in i['items']:
