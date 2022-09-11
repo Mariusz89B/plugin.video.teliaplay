@@ -2421,6 +2421,8 @@ def play(exlink, title, media_id, catchup_type, start, end):
         play_item.setProperty('IsPlayable', 'true')
         if catchup_type != 'LIVE':
             play_item.setProperty('inputstream.adaptive.play_timeshift_buffer', 'true')
+        if catchup_type == 'ONDEMAND':
+            play_item.setProperty('inputstream.adaptive.play_timeshift_buffer', 'false')
 
         xbmcplugin.setResolvedUrl(addon_handle, True, listitem=play_item)
 
