@@ -804,24 +804,32 @@ def get_items(data, mode=None, thumb=thumb, poster=poster, banner=banner, clearl
 
             title = label
 
-            availability = media.get('availability')
-            if availability:
-                start = availability
-                if start:
-                    fr = start.get('from')
-                    if fr:
-                        timestamp = fr.get('timestamp')
-                        if isinstance(timestamp, int):
-                            start_time = timestamp // 1000
+            timestamp = None
 
-                            dt_start = datetime.fromtimestamp(start_time)
-                            try:
-                                da_start = dt_start.strftime('%A %#d/%#m %H:%M')
-                            except:
-                                da_start = dt_start.strftime('%A %-d/%-m %H:%M')
+            start = item.get('startTime')
+            if start:
+                timestamp = start.get('timestamp')
 
-                            if da_start != '00:00':
-                                title = label + ' [COLOR grey]({0})[/COLOR]'.format(da_start)
+            else:
+                availability = media.get('availability')
+                if availability:
+                    start = availability
+                    if start:
+                        fr = start.get('from')
+                        if fr:
+                            timestamp = fr.get('timestamp')
+
+            if isinstance(timestamp, int):
+                start_time = timestamp // 1000
+
+                dt_start = datetime.fromtimestamp(start_time)
+                try:
+                    da_start = dt_start.strftime('%A %#d/%#m %H:%M')
+                except:
+                    da_start = dt_start.strftime('%A %-d/%-m %H:%M')
+
+                if da_start != '00:00':
+                    title = label + ' [COLOR grey]({0})[/COLOR]'.format(da_start)
 
             outline = media.get('description')
             plot = media.get('descriptionLong')
