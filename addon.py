@@ -823,9 +823,9 @@ def get_items(data, mode=None, thumb=thumb, poster=poster, banner=banner, clearl
                 start_time = timestamp // 1000
 
                 dt_start = datetime.fromtimestamp(start_time)
-                try:
+                if os.name == 'nt':
                     da_start = dt_start.strftime('%A %#d/%#m %H:%M')
-                except:
+                else:
                     da_start = dt_start.strftime('%A %-d/%-m %H:%M')
 
                 if da_start != '00:00':
@@ -888,6 +888,8 @@ def get_items(data, mode=None, thumb=thumb, poster=poster, banner=banner, clearl
                         src = card_1x1.get('source')
                     if src:
                         poster = unquote(src)
+                else:
+                    poster = fanart
 
                 card_2x3 = images.get('showcard2x3') if images.get('showcard2x3') else images.get('showcase2x3')
                 if card_2x3:
@@ -896,6 +898,8 @@ def get_items(data, mode=None, thumb=thumb, poster=poster, banner=banner, clearl
                         src = card_2x3.get('source')
                     if src:
                         poster = unquote(src)
+                else:
+                    poster = fanart
 
                 card_16x9 = images.get('showcard16x9') if images.get('showcard16x9') else images.get('showcase16x9')
                 if card_16x9:
@@ -904,12 +908,16 @@ def get_items(data, mode=None, thumb=thumb, poster=poster, banner=banner, clearl
                         src = card_16x9.get('source')
                     if src:
                         poster = unquote(src)
+                else:
+                    poster = fanart
 
             else:
                 icons = media.get('icons')
                 if icons:
                     poster = icons.get('dark').get('sourceNonEncoded')
                     plot = typename
+                else:
+                    poster = fanart
 
             ext = localized(30027)
             context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(title))]
@@ -1089,6 +1097,8 @@ def vod_episodes(season, season_id):
                             src = card_2x3.get('source')
                         if src:
                             poster = unquote(src)
+                    else:
+                        poster = fanart
 
                     icon = ''
                     card_16x9 = images.get('showcard16x9')
@@ -1098,6 +1108,8 @@ def vod_episodes(season, season_id):
                             src = card_16x9.get('source')
                         if src:
                             icon = unquote(src)
+                    else:
+                        poster = fanart
 
                 ext = localized(30027)
                 context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(label))]
@@ -1366,6 +1378,10 @@ def now_playing(thumb=thumb, poster=poster, banner=banner, clearlogo=clearlogo, 
                                     src = card_16x9.get('source')
                                 if src:
                                     poster = unquote(src)
+                            else:
+                                poster = fanart
+                        else:
+                            poster = fanart
 
                         plot = media.get('descriptionLong')
                         outline = plot
@@ -1757,6 +1773,8 @@ def live_channel(exlink, extitle):
                         src = card_2x3.get('source')
                     if src:
                         poster = unquote(src)
+                else:
+                    poster = fanart
 
                 card_16x9 = images.get('showcard16x9')
                 if card_16x9:
@@ -1765,6 +1783,10 @@ def live_channel(exlink, extitle):
                         src = card_16x9.get('source')
                     if src:
                         icon = unquote(src)
+                else:
+                    poster = fanart
+            else:
+                poster = fanart
 
             ext = localized(30027)
             context_menu = [('{0}'.format(ext), 'RunScript(plugin.video.teliaplay,0,?mode=ext,label={0})'.format(label))]
@@ -2168,7 +2190,7 @@ def sports_corner(genre_id, media_id):
     n = datetime.now()
     now = int(time.mktime(n.timetuple())) * 1000
 
-    timestamp = str(((int(time.time() // 86400)) * 86400) * 1000)
+    timestamp = int(((int(time.time() // 86400)) * 86400) * 1000)
 
     url = 'https://graphql-telia.t6a.net/'
 
@@ -2193,56 +2215,56 @@ def sports_corner(genre_id, media_id):
             'timestamp': timestamp
         },
 
-        'query': 'query getMobilePage($pageId: String!, $timestamp: Timestamp!, $channelsLimit: Int!, $mediaContentLimit: Int!) { page(id: $pageId) { id pagePanels(limit: 60) { items { __typename title id ...MobileSelectionMediaPanel ...MobileMediaPanel ...MobileStoresPanel ...MobileRentalsPanel ...MobileTimelinePanel ...MobileShowcasePanel ...MobileContinueWatchingPanel ...MobileMyListPanel ...MobileChannelsPanel ...MobileSingleFeaturePanel ...MobilePageLinkPanel } } } }  fragment PlaybackSpec on PlaybackSpec { accessControl videoId videoIdType watchMode }  fragment Vod on Vod { audioLang { name code } playbackSpec { __typename ...PlaybackSpec } price { readable } validFrom { timestamp readableDistance(type: FUZZY) } validTo { timestamp } }  fragment Linear on PlaybackPlayLinear { item { startover { playbackSpec { __typename ...PlaybackSpec } } playbackSpec { __typename ...PlaybackSpec } startTime { timestamp readableDistance(type: FUZZY) } endTime { timestamp } } }  fragment Rental on PlaybackPlayVodRental { item { __typename ...Vod } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) msTo } } }  fragment Recording on PlaybackPlayRecording { item { playbackSpec { __typename ...PlaybackSpec } audioLang { name code } validFrom { timestamp } validTo { timestamp } } startover { playbackSpec { __typename ...PlaybackSpec } } }  fragment SubscriptionProductStandard on SubscriptionProductStandard { id price { readable } }  fragment SubscriptionProductDualEntry on SubscriptionProductDualEntry { id }  fragment SubscriptionProductTVE on SubscriptionProductTVE { id }  fragment SubscriptionProductFallback on SubscriptionProductFallback { id }  fragment Playback on Playback { play { subscription { item { __typename ...Vod } } linear { __typename ...Linear } rental { __typename ...Rental } npvr { __typename ...Recording } } buy { subscriptions { item { __typename id name ...SubscriptionProductStandard ...SubscriptionProductDualEntry ...SubscriptionProductTVE ...SubscriptionProductFallback } } rental { item { price { readable } validFrom { timestamp } validTo { timestamp } } } npvr { __typename } } }  fragment MobilePageMovie on Movie { id title playback { __typename ...Playback } images { backdrop16x9 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } } descriptionLong price { readable } genre yearProduction { number } ageRating { number } duration { readableShort } ratings { imdb { readableScore } } productionCountries userData { progress { percent position } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) } } } store { name } availability { from { text } } availableNow labels { premiereAnnouncement { text } } }  fragment MobilePageSeries on Series { id title images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } } description genre ageRating { number } ratings { imdb { readableScore } } label webview { url } isRentalSeries }  fragment MobilePageEpisode on Episode { id title images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } screenshot16x9 { sourceNonEncoded } } descriptionLong price { readable } genre yearProduction { number } episodeNumber { number readable } seasonNumber { number readable } playback { __typename ...Playback } series { id title } ageRating { number } duration { readableShort } userData { progress { percent position } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) } } } store { name } }  fragment MobilePageSportEvent on SportEvent { id title playback { __typename ...Playback } images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } } availability { from { text timestamp } } descriptionLong genre badges { uhd { text } } productionCountries ageRating { number } duration { readableShort } store { name } league labels { airtime { text } } yearProduction { number } userData { progress { percent position } } venue }  fragment MobilePageMediaPanelContent on MediaPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileSelectionMediaPanel on SelectionMediaPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } selectionMediaContent(config: { limit: $mediaContentLimit } ) { pageInfo { hasNextPage } items { media { __typename ...MobilePageMediaPanelContent } } } link { id type } }  fragment MobileMediaPanel on MediaPanel { id title kicker displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } mediaContent(limit: $mediaContentLimit) { pageInfo { hasNextPage } items { media { __typename ...MobilePageMediaPanelContent } } } }  fragment MobilePageStore on Store { id __typename name icons { light { sourceNonEncoded } dark { sourceNonEncoded } } }  fragment MobileStoresPanel on StoresPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } storesContent(limit: $mediaContentLimit) { pageInfo { hasNextPage } items { __typename ...MobilePageStore } } }  fragment MobileRentalsPanelItemContent on RentalsPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } }  fragment MobileRentalsPanel on RentalsPanel { id title rentalsContent(limit: $mediaContentLimit) { items { media { __typename ...MobileRentalsPanelItemContent } } } }  fragment MobileTimeLinePanelItemContent on TimelinePanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileTimelinePanel on TimelinePanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } timelineContent(limit: $mediaContentLimit) { pageInfo { hasNextPage } items { media { __typename ...MobileTimeLinePanelItemContent } startTime { timestamp isoString } endTime { timestamp isoString } } } }  fragment Store on Store { name icons { dark { sourceNonEncoded } } }  fragment MobileShowcaseMovie on Movie { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } store { __typename ...Store } }  fragment MobileShowcaseEpisode on Episode { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } series { id } store { __typename ...Store } }  fragment MobileShowcaseSeries on Series { id title userData { favorite } images { backdrop16x9 { sourceNonEncoded } } webview { url } suggestedEpisode { id playback { __typename ...Playback } } store { __typename ...Store } }  fragment MobileShowcaseSportEvent on SportEvent { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } store { __typename ...Store } }  fragment ChannelPlayback on ChannelPlayback { play { playbackSpec { __typename ...PlaybackSpec } } buy { subscriptions { item { id } } } }  fragment MobileShowcaseChannel on Channel { channelPlayback: playback { __typename ...ChannelPlayback } }  fragment MobileShowcasePanel on ShowcasePanel { id title showcaseContent { items { id showcaseTitle { text } kicker images { showcase16x9 { sourceNonEncoded } showcase16x7 { sourceNonEncoded } showcase7x10 { sourceNonEncoded } showcase2x3 { sourceNonEncoded } } promotion { link { id type } content { __typename ...MobileShowcaseMovie ...MobileShowcaseEpisode ...MobileShowcaseSeries ...MobileShowcaseSportEvent ...MobileShowcaseChannel } } } } }  fragment MobileContinueWatchingPanelItemContent on ContinueWatchingPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileContinueWatchingPanel on ContinueWatchingPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } continueWatchingContent { items { media { __typename ...MobileContinueWatchingPanelItemContent } } } }  fragment MobileMyListPanelItemContent on MyListPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileMyListPanel on MyListPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } myListContent(limit: $mediaContentLimit) { pageInfo { hasNextPage } items { media { __typename ...MobileMyListPanelItemContent } } } }  fragment MobileChannelsPanel on ChannelsPanel { id title channels(limit: $channelsLimit) { pageInfo { hasNextPage } channelItems { id name userData { inEngagement } icons { dark { sourceNonEncoded } } playback { play { playbackSpec { __typename ...PlaybackSpec } } } displayHint { __typename ... on NormalChannelDisplayHint { noProgramsText } ... on LiveOnlyChannelDisplayHint { noProgramsText } } programs(timestamp: $timestamp, limit: 1) { programItems { startTime { timestamp isoString } endTime { timestamp isoString } media { __typename ... on Movie { title } ... on Episode { series { title } } ... on SportEvent { title } } } } } } }  fragment MobileSingleFeaturePanelMedia on SingleFeaturePanelMedia { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileSingleFeaturePanel on SingleFeaturePanel { id title subtitle images { __typename ... on SingleFeaturePanelImages { promo16x9 { sourceNonEncoded } } } media { __typename ...MobileSingleFeaturePanelMedia } }  fragment MobilePageLinkPanel on PageLinkPanel { id title pageLinkContent { items { id name description type images { icon1x1 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } } } } }'
+        'query': 'query getMobilePage($pageId: String!, $timestamp: Timestamp!, $channelsLimit: Int!, $mediaContentLimit: Int!, $offset: Int) { page(id: $pageId) { id pagePanels(limit: 60) { items { __typename title id ...MobileSelectionMediaPanel ...MobileMediaPanel ...MobileStoresPanel ...MobileRentalsPanel ...MobileTimelinePanel ...MobileShowcasePanel ...MobileContinueWatchingPanel ...MobileMyListPanel ...MobileChannelsPanel ...MobileSingleFeaturePanel ...MobilePageLinkPanel } } } }  fragment PlaybackSpec on PlaybackSpec { accessControl videoId videoIdType watchMode }  fragment Vod on Vod { audioLang { name code } playbackSpec { __typename ...PlaybackSpec } price { readable } validFrom { timestamp readableDistance(type: FUZZY) } validTo { timestamp } }  fragment Linear on PlaybackPlayLinear { item { startover { playbackSpec { __typename ...PlaybackSpec } } playbackSpec { __typename ...PlaybackSpec } startTime { timestamp readableDistance(type: FUZZY) } endTime { timestamp } } }  fragment Rental on PlaybackPlayVodRental { item { __typename ...Vod } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) sTo } } }  fragment Recording on PlaybackPlayRecording { item { playbackSpec { __typename ...PlaybackSpec } audioLang { name code } validFrom { timestamp } validTo { timestamp } } startover { playbackSpec { __typename ...PlaybackSpec } } }  fragment DeepLink on DeepLink { uri serviceName googlePlayStoreId validFrom { timestamp } validTo { timestamp } }  fragment SubscriptionProductStandard on SubscriptionProductStandard { id price { readable } }  fragment SubscriptionProductDualEntry on SubscriptionProductDualEntry { id }  fragment SubscriptionProductTVE on SubscriptionProductTVE { id }  fragment SubscriptionProductFallback on SubscriptionProductFallback { id }  fragment Playback on Playback { play { subscription { item { __typename ...Vod } } linear { __typename ...Linear } rental { __typename ...Rental } npvr { __typename ...Recording } deepLinks { item { __typename ...DeepLink } } } buy { subscriptions { item { __typename id name ...SubscriptionProductStandard ...SubscriptionProductDualEntry ...SubscriptionProductTVE ...SubscriptionProductFallback } } rental { item { price { readable } validFrom { timestamp } validTo { timestamp } } } npvr { item { playbackSpec { __typename ...PlaybackSpec } } } deepLinks { item { __typename ...DeepLink } } } }  fragment MobilePageMovie on Movie { id title playback { __typename ...Playback } images { backdrop16x9 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } } descriptionLong price { readable } genre yearProduction { number } ageRating { readable } duration { readableShort } ratings { imdb { readableScore } } productionCountries userData { progress { percent position } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) } } } store { name } availability { from { text } } availableNow labels { premiereAnnouncement { text } } }  fragment MobilePageSeries on Series { id title images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } } description genre ageRating { readable } ratings { imdb { readableScore } } label webview { url } isRentalSeries }  fragment MobilePageEpisode on Episode { id title images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } screenshot16x9 { sourceNonEncoded } } descriptionLong price { readable } genre yearProduction { number } episodeNumber { number readable } seasonNumber { number readable } playback { __typename ...Playback } series { id title } ageRating { readable } duration { readableShort } userData { progress { percent position } rentalInfo { endTime { readableDistance(type: HOURS_OR_MINUTES) } } } store { name } }  fragment MobilePageSportEvent on SportEvent { id title playback { __typename ...Playback } images { backdrop16x9 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } showcard16x9 { sourceNonEncoded } } availability { from { text timestamp } } descriptionLong genre badges { uhd { text } } productionCountries ageRating { readable } duration { readableShort } store { name } league labels { airtime { text } } yearProduction { number } userData { progress { percent position } } venue }  fragment MobilePageMediaPanelContent on MediaPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileSelectionMediaPanel on SelectionMediaPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } ... on DisplayHintList { listSubType } ... on DisplayHintGrid { gridSubType } } selectionMediaContent(config: { limit: $mediaContentLimit offset: $offset } ) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobilePageMediaPanelContent } } } link { id type } }  fragment MobileMediaPanel on MediaPanel { id title kicker displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } ... on DisplayHintList { listSubType } ... on DisplayHintGrid { gridSubType } } mediaContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobilePageMediaPanelContent } } } }  fragment MobilePageStore on Store { id __typename name icons { light { sourceNonEncoded } dark { sourceNonEncoded } } }  fragment MobileStoresPanel on StoresPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } ... on DisplayHintGrid { gridSubType } ... on DisplayHintList { listSubType } } storesContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { __typename ...MobilePageStore } } }  fragment MobileRentalsPanelItemContent on RentalsPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } }  fragment MobileRentalsPanel on RentalsPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } rentalsContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobileRentalsPanelItemContent } } } }  fragment MobileTimeLinePanelItemContent on TimelinePanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileTimelinePanel on TimelinePanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } timelineContent(limit: $mediaContentLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobileTimeLinePanelItemContent } startTime { timestamp isoString } endTime { timestamp isoString } } } }  fragment Store on Store { name icons { dark { sourceNonEncoded } } }  fragment MobileShowcaseMovie on Movie { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } store { __typename ...Store } }  fragment MobileShowcaseEpisode on Episode { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } series { id } store { __typename ...Store } }  fragment MobileShowcaseSeries on Series { id title userData { favorite } images { backdrop16x9 { sourceNonEncoded } } webview { url } suggestedEpisode { id playback { __typename ...Playback } } store { __typename ...Store } }  fragment MobileShowcaseSportEvent on SportEvent { id title userData { progress { position } favorite } images { backdrop16x9 { sourceNonEncoded } } playback { __typename ...Playback } store { __typename ...Store } }  fragment ChannelPlayback on ChannelPlayback { play { playbackSpec { __typename ...PlaybackSpec } } buy { subscriptions { item { id } } } }  fragment MobileShowcaseChannel on Channel { channelPlayback: playback { __typename ...ChannelPlayback } }  fragment MobileShowcasePanel on ShowcasePanel { id title showcaseContent { items { id showcaseTitle { text } kicker images { showcase16x9 { sourceNonEncoded } showcase16x7 { sourceNonEncoded } showcase7x10 { sourceNonEncoded } showcase2x3 { sourceNonEncoded } } promotion { link { id type } content { __typename ...MobileShowcaseMovie ...MobileShowcaseEpisode ...MobileShowcaseSeries ...MobileShowcaseSportEvent ...MobileShowcaseChannel } } } } }  fragment MobileContinueWatchingPanelItemContent on ContinueWatchingPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Episode { __typename ...MobilePageEpisode } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileContinueWatchingPanel on ContinueWatchingPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } continueWatchingContent { items { media { __typename ...MobileContinueWatchingPanelItemContent } } } }  fragment MobileMyListPanelItemContent on MyListPanelItemContent { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileMyListPanel on MyListPanel { id title displayHint { __typename ... on DisplayHintSwimlane { swimlaneSubType } } myListContent(limit: $mediaContentLimit) { pageInfo { hasNextPage nextPageOffset } items { media { __typename ...MobileMyListPanelItemContent } } } }  fragment ProgramMedia on ProgramMedia { __typename ... on Movie { id title playback { __typename ...Playback } } ... on Episode { id series { title userData { npvrInfo { active } } } playback { __typename ...Playback } } ... on SportEvent { id title playback { __typename ...Playback } } }  fragment MobileChannelsPanel on ChannelsPanel { id title channels(limit: $channelsLimit, offset: $offset) { pageInfo { hasNextPage nextPageOffset } channelItems { id name userData { inEngagement } icons { dark { sourceNonEncoded } } playback { play { playbackSpec { __typename ...PlaybackSpec } } } displayHint { __typename ... on NormalChannelDisplayHint { noProgramsText } ... on LiveOnlyChannelDisplayHint { noProgramsText } } programs(timestamp: $timestamp, limit: 1) { programItems { startTime { timestamp isoString } endTime { timestamp isoString } media { __typename ...ProgramMedia } } } recordAndWatch } } }  fragment MobileSingleFeaturePanelMedia on SingleFeaturePanelMedia { __typename ... on Movie { __typename ...MobilePageMovie } ... on Series { __typename ...MobilePageSeries } ... on SportEvent { __typename ...MobilePageSportEvent } }  fragment MobileSingleFeaturePanel on SingleFeaturePanel { id title subtitle images { __typename ... on SingleFeaturePanelImages { promo16x9 { sourceNonEncoded } } } media { __typename ...MobileSingleFeaturePanelMedia } }  fragment MobilePageLinkPanel on PageLinkPanel { id title pageLinkContent { items { id name description type images { icon1x1 { sourceNonEncoded } showcard2x3 { sourceNonEncoded } } } } }',
     }
 
     response = send_req(url, post=True, json=json, headers=headers)
     if response:
         j_response = response.json()
 
-    try:
-        data = j_response['data']['page']['pagePanels']['items'][idx]
-        items = None
+    #try:
+    data = j_response['data']['page']['pagePanels']['items'][idx]
+    items = None
 
-        pagelink = data.get('pageLinkContent')
-        timeline = data.get('timelineContent')
-        selection = data.get('selectionMediaContent')
-        media = data.get('mediaContent')
-        stores = data.get('storesContent')
-        showcase = data.get('showcaseContent')
+    pagelink = data.get('pageLinkContent')
+    timeline = data.get('timelineContent')
+    selection = data.get('selectionMediaContent')
+    media = data.get('mediaContent')
+    stores = data.get('storesContent')
+    showcase = data.get('showcaseContent')
 
-        if pagelink:
-            items = pagelink.get('items')
+    if pagelink:
+        items = pagelink.get('items')
 
-        elif timeline:
-            items = timeline.get('items')
+    elif timeline:
+        items = timeline.get('items')
 
-        elif selection:
-            items = selection.get('items')
+    elif selection:
+        items = selection.get('items')
 
-        elif media:
-            items = media.get('items')
+    elif media:
+        items = media.get('items')
 
-        elif showcase:
-            items = showcase.get('items')
+    elif showcase:
+        items = showcase.get('items')
 
-        elif stores:
-            items = stores.get('items')
+    elif stores:
+        items = stores.get('items')
 
-        if not items:
-            xbmcgui.Dialog().notification(localized(30012), localized(30048))
-            return
-
-        mode = None
-        if j_response['data']['page']['id'] == 'sports-corner':
-            mode = 'sports_corner'
-
-        get_items(items, mode)
-
-    except Exception as ex:
-        print('sports Exception: {}'.format(ex))
+    if not items:
         xbmcgui.Dialog().notification(localized(30012), localized(30048))
         return
+
+    mode = None
+    if j_response['data']['page']['id'] == 'sports-corner':
+        mode = 'sports_corner'
+
+    get_items(items, mode)
+
+    #except Exception as ex:
+        #print('sports Exception: {}'.format(ex))
+        #xbmcgui.Dialog().notification(localized(30012), localized(30048))
+        #return
 
 def kids_genre():
     login = check_login()
